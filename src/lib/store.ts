@@ -1,7 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { generateCaption } from "@/lib/caption";
 import { env } from "@/lib/env";
+import { parseEventSubChat } from "@/lib/eventsub-message";
+import { createHarnessPackage, lastMinuteSurgeFixture } from "@/lib/harness-fixtures";
 import { isHypeCommand } from "@/lib/hype";
+import { createAgentRuns, orchestrateMoment } from "@/lib/orchestrator";
 import { createClip, waitForClip } from "@/lib/twitch";
 import type { ChatSignal, Moment, RuntimeState, TwitchSession } from "@/lib/types";
 
@@ -9,6 +12,7 @@ type InternalStore = {
   state: RuntimeState;
   voters: Map<string, { name: string; at: number }>;
   captureInFlight: boolean;
+  processedMessages: Set<string>;
   session?: TwitchSession;
 };
 
@@ -30,6 +34,7 @@ function createStore(): InternalStore {
     },
     voters: new Map(),
     captureInFlight: false,
+    processedMessages: new Set(),
   };
 }
 
@@ -59,10 +64,16 @@ function pruneVotes(now = Date.now()) {
   runtime.state.currentVotes = runtime.voters.size;
 }
 
-export function ingestChat(signal: ChatSignal) {
+export function ingestChat(signal: ChatSignal): Promise<Moment> | null {
+  if (runtime.processedMessages.has(signal.id)) return null;
+  runtime.processedMessages.add(signal.id);
+  if (runtime.processedMessages.size > 500) {
+    const oldest = runtime.processedMessages.values().next().value;
+    if (oldest) runtime.processedMessages.delete(oldest);
+  }
   runtime.state.recentChat = [signal, ...runtime.state.recentChat].slice(0, 24);
   const isHype = isHypeCommand(signal.message);
-  if (!isHype) return;
+  if (!isHype) return null;
 
   const now = Date.now();
   pruneVotes(now);
@@ -80,11 +91,12 @@ export function ingestChat(signal: ChatSignal) {
     !runtime.captureInFlight
   ) {
     const simulated = Boolean(signal.simulated);
-    void captureCandidate(simulated);
+    return captureCandidate(simulated);
   }
+  return null;
 }
 
-async function captureCandidate(simulated: boolean) {
+async function captureCandidate(simulated: boolean): Promise<Moment> {
   runtime.captureInFlight = true;
   const session = runtime.session;
   const contributors = [...runtime.voters.values()].map((vote) => vote.name);
@@ -101,6 +113,7 @@ async function captureCandidate(simulated: boolean) {
     punditLine: "The crowd is calling a moment.",
     socialDrafts: [],
     agentProvider: "Pending",
+    agentRuns: createAgentRuns(now),
     status: simulated ? "pending" : "capturing",
     hypeVotes: contributors.length,
     contributors,
@@ -114,23 +127,25 @@ async function captureCandidate(simulated: boolean) {
   runtime.state.currentVotes = 0;
 
   try {
-    const caption = await generateCaption({
+    const result = await orchestrateMoment({
       creatorName: moment.creatorName,
       hypeVotes: moment.hypeVotes,
       chatContext: moment.chatContext,
+      simulated,
+      session,
+    }, {
+      generatePackage: simulated ? async (input) => createHarnessPackage(input) : generateCaption,
+      captureClip: async (activeSession) => {
+        const pendingClip = await createClip(activeSession);
+        const clip = await waitForClip(pendingClip.id, activeSession.accessToken);
+        return { clipId: clip.id, clipUrl: clip.url, thumbnailUrl: clip.thumbnail_url };
+      },
+      onProgress: (agentRuns) => {
+        moment.agentRuns = agentRuns;
+        moment.updatedAt = new Date().toISOString();
+      },
     });
-    Object.assign(moment, caption, { aiGenerated: true, updatedAt: new Date().toISOString() });
-
-    if (!simulated) {
-      if (!session) throw new Error("The Twitch session is no longer available");
-      const pendingClip = await createClip(session);
-      const clip = await waitForClip(pendingClip.id, session.accessToken);
-      Object.assign(moment, {
-        clipId: clip.id,
-        clipUrl: clip.url,
-        thumbnailUrl: clip.thumbnail_url,
-      });
-    }
+    Object.assign(moment, result, { aiGenerated: !simulated, updatedAt: new Date().toISOString() });
     moment.status = "pending";
   } catch (error) {
     moment.status = "failed";
@@ -139,6 +154,7 @@ async function captureCandidate(simulated: boolean) {
     moment.updatedAt = new Date().toISOString();
     runtime.captureInFlight = false;
   }
+  return moment;
 }
 
 export function reviewMoment(id: string, status: "approved" | "rejected") {
@@ -155,6 +171,21 @@ export function findMoment(id: string) {
 }
 
 export async function runDemoSequence() {
+  if (runtime.captureInFlight) return;
+  runtime.state.cooldownUntil = undefined;
+  runtime.voters.clear();
+  runtime.processedMessages.clear();
+  let capture: Promise<Moment> | null = null;
+  for (const envelope of lastMinuteSurgeFixture) {
+    const signal = parseEventSubChat(envelope, { simulated: true });
+    if (!signal) continue;
+    capture = ingestChat(signal) ?? capture;
+  }
+  await capture;
+}
+
+/** @deprecated Kept only for backwards-compatible local rehearsal imports. */
+export async function runLegacyDemoSequence() {
   if (runtime.captureInFlight) return;
   runtime.state.cooldownUntil = undefined;
   runtime.voters.clear();

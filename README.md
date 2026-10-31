@@ -55,7 +55,7 @@ The working MVP includes:
 
 CrowdPulse will give creators a shareable match lobby before they go live. Fans can check in, submit score predictions, answer a match poll or trivia prompt, and raise a visible community hype meter. At go-live, CrowdPulse turns those responses into the creator's opening talking points and carries the crowd state into the live overlay.
 
-Read the [product positioning](docs/PRODUCT_POSITIONING.md), [research brief](docs/research/prestream-engagement.md), [updated PRD](docs/hackathon-build/prd.md), and [product roadmap](docs/ROADMAP.md).
+Read the [product positioning](docs/PRODUCT_POSITIONING.md), [demo runbook](docs/DEMO_RUNBOOK.md), [research brief](docs/research/prestream-engagement.md), [updated PRD](docs/hackathon-build/prd.md), and [product roadmap](docs/ROADMAP.md).
 
 ## Quick start
 
@@ -75,6 +75,7 @@ Open `http://localhost:3000`. Use the sandbox rehearsal to verify the UI without
 | `npm run check` | Run TypeScript validation |
 | `npm run lint` | Run ESLint |
 | `npm test` | Run hype-detector tests |
+| `npm run harness` | Replay Twitch-shaped chat fixtures through the complete agent pipeline |
 | `npm run build` | Create a production build |
 | `npm start` | Run the persistent Node.js server |
 
@@ -96,6 +97,12 @@ flowchart TB
 ```
 
 See [Architecture](docs/ARCHITECTURE.md) for runtime boundaries and deployment guidance.
+
+## Agent harness
+
+`npm run harness` replays a labelled `channel.chat.message` fixture through Signal Scout, Clip Director, Pundit, and Growth Producer using injected test adapters. It never calls Twitch or an AI provider. The dashboard's **Run sandbox rehearsal** action uses the same EventSub-shaped fixture and production orchestration code, while keeping the resulting moment visibly labelled as sandbox data.
+
+Use `/api/health` to inspect non-secret readiness: configured providers, model selection, agent roster, and whether the current runtime can durably own the EventSub transport. A real end-to-end proof still requires a live Twitch channel with clips enabled and rotated production credentials.
 
 ## Product principles
 

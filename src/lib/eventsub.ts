@@ -1,5 +1,6 @@
 import WebSocket from "ws";
 import { env } from "@/lib/env";
+import { parseEventSubChat, type EventSubChatEnvelope } from "@/lib/eventsub-message";
 import { ingestChat, setConnection, setRuntimeSession } from "@/lib/store";
 import { twitchFetch, validateToken } from "@/lib/twitch";
 import type { TwitchSession } from "@/lib/types";
@@ -67,13 +68,11 @@ function connect(session: TwitchSession, url = "wss://eventsub.wss.twitch.tv/ws?
         data.payload.event
       ) {
         const event = data.payload.event;
-        ingestChat({
-          id: event.message_id ?? data.metadata.message_id,
-          userId: event.chatter_user_id,
-          userName: event.chatter_user_name,
-          message: event.message.text,
-          timestamp: new Date().toISOString(),
-        });
+        const signal = parseEventSubChat({
+          subscription: { type: data.metadata.subscription_type },
+          event: { ...event, message_id: event.message_id ?? data.metadata.message_id },
+        } satisfies EventSubChatEnvelope);
+        if (signal) await ingestChat(signal);
       }
 
       if (data.metadata.message_type === "session_reconnect" && data.payload.session?.reconnect_url) {

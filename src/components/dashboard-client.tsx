@@ -5,8 +5,8 @@ import {
   Activity, ArrowUpRight, Bot, Check, CircleAlert, Copy, Flame, Loader2,
   LogOut, Megaphone, Play, Radio, Sparkles, Square, Twitch, Volume2, X,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import type { Moment, RuntimeState } from "@/lib/types";
+import { Fragment, useCallback, useEffect, useState } from "react";
+import type { Moment, MomentAgentName, RuntimeState } from "@/lib/types";
 
 type SessionState = {
   configured: boolean;
@@ -25,6 +25,18 @@ const emptyState: RuntimeState = {
   recentChat: [],
   moments: [],
 };
+
+const pipelineAgents: Array<{
+  name: MomentAgentName;
+  label: string;
+  description: string;
+  icon: typeof Bot;
+}> = [
+  { name: "signal-scout", label: "01 Signal Scout", description: "Unique chat commands detect intent", icon: Bot },
+  { name: "clip-director", label: "02 Clip Director", description: "Twitch captures the live window", icon: Flame },
+  { name: "pundit", label: "03 Pundit", description: "Grounded commentary packages the story", icon: Volume2 },
+  { name: "growth-producer", label: "04 Growth Producer", description: "Creator-review social drafts", icon: Megaphone },
+];
 
 export function DashboardClient() {
   const [session, setSession] = useState<SessionState | null>(null);
@@ -79,6 +91,7 @@ export function DashboardClient() {
   const pending = state.moments.filter((moment) => ["capturing", "pending", "failed"].includes(moment.status));
   const approved = state.moments.filter((moment) => moment.status === "approved");
   const signalStrength = Math.min(100, Math.round((state.currentVotes / state.hypeThreshold) * 100));
+  const latestRuns = state.moments[0]?.agentRuns ?? [];
 
   return (
     <div className="dashboard-layout">
@@ -109,13 +122,19 @@ export function DashboardClient() {
         {notice && <div className="notice"><CircleAlert size={18} /> {notice}<button onClick={() => setNotice(null)}><X size={16} /></button></div>}
 
         <section className="agent-rail" aria-label="Moment agent pipeline">
-          <div><Bot size={18} /><span><b>01 Signal Scout</b><small>Unique chat commands detect intent</small></span></div>
-          <i />
-          <div><Flame size={18} /><span><b>02 Clip Director</b><small>Twitch captures the live window</small></span></div>
-          <i />
-          <div><Volume2 size={18} /><span><b>03 Pundit</b><small>{session?.agentProvider ?? "Grounded AI"} packages the story</small></span></div>
-          <i />
-          <div><Megaphone size={18} /><span><b>04 Growth Producer</b><small>Creator-approved social drafts</small></span></div>
+          {pipelineAgents.map((agent, index) => {
+            const run = latestRuns.find((item) => item.agent === agent.name);
+            const Icon = agent.icon;
+            return (
+              <Fragment key={agent.name}>
+                <div className={run?.status ?? "idle"} title={run?.detail}>
+                  <Icon size={18} />
+                  <span><b>{agent.label}</b><small>{run ? `${run.status} · ${run.detail}` : agent.description}</small></span>
+                </div>
+                {index < pipelineAgents.length - 1 && <i />}
+              </Fragment>
+            );
+          })}
         </section>
 
         <section className="control-grid">
@@ -207,6 +226,14 @@ function MomentReview({ moment, busy, action }: { moment: Moment; busy: string |
           ))}
         </div>
       )}
+      <div className="agent-run-list" aria-label="Agent execution trace">
+        {moment.agentRuns.map((run) => (
+          <div className={run.status} key={run.agent}>
+            <i />
+            <span><b>{run.label}</b><small>{run.status} · {run.detail}</small></span>
+          </div>
+        ))}
+      </div>
       {moment.failureReason && <div className="failure"><CircleAlert size={15} /> {moment.failureReason}</div>}
       <div className="context-chips">{moment.contributors.slice(0, 4).map((name) => <span key={name}>@{name}</span>)}</div>
       <div className="review-footer">

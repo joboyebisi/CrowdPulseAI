@@ -15,6 +15,18 @@ export type SocialDraft = {
   hashtags: string[];
 };
 
+export type MomentAgentName = "signal-scout" | "clip-director" | "pundit" | "growth-producer";
+export type MomentAgentStatus = "queued" | "running" | "completed" | "skipped" | "failed";
+
+export type MomentAgentRun = {
+  agent: MomentAgentName;
+  label: string;
+  status: MomentAgentStatus;
+  startedAt?: string;
+  completedAt?: string;
+  detail: string;
+};
+
 export type Moment = {
   id: string;
   createdAt: string;
@@ -26,6 +38,7 @@ export type Moment = {
   punditLine: string;
   socialDrafts: SocialDraft[];
   agentProvider: string;
+  agentRuns: MomentAgentRun[];
   status: MomentStatus;
   hypeVotes: number;
   contributors: string[];

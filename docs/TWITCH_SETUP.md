@@ -69,3 +69,14 @@ Append `?voice=1` to enable browser-based pundit speech:
 ## Optional AI captions
 
 Set `GEMINI_API_KEY` and `GEMINI_MODEL=gemini-3.8-flash` to enable the Pundit and Growth Producer agents. OpenAI remains an optional secondary provider. Without either key, CrowdPulse uses a transparent deterministic package so the Twitch workflow still works.
+
+## Verify the agent harness
+
+Run the deterministic pipeline before using live credentials:
+
+```bash
+npm run harness
+npm test
+```
+
+The harness consumes the same `channel.chat.message` envelope shape as EventSub, exercises every agent state, and uses no Twitch or Gemini quota. Then open `/api/health` to confirm the deployed provider and runtime status. A Vercel function cannot reliably retain the current WebSocket after its request finishes; production EventSub therefore needs the always-on worker described in the architecture guide, or a signed webhook backed by durable token and moment storage.

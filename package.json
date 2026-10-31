@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "check": "tsc --noEmit",
-    "test": "node --test --import tsx tests/*.test.ts"
+    "test": "node --test --import tsx tests/*.test.ts",
+    "harness": "tsx scripts/run-agent-harness.ts"
   },
   "dependencies": {
     "@types/ws": "8.18.2",
