@@ -1,18 +1,58 @@
-# CrowdPulse AI
+<p align="center">
+  <img src="public/crowdpulse-banner.svg" alt="CrowdPulse AI — Before kickoff. During chaos. After history." width="100%" />
+</p>
 
-CrowdPulse turns a spike of unique `!hype` messages in Twitch chat into a creator-reviewed, AI-captioned, shareable moment.
+<p align="center">
+  <strong>The audience intelligence layer for live sports creators.</strong><br />
+  Build anticipation before the stream, detect the moments that matter live, and let the creator approve what becomes history.
+</p>
 
-The MVP implements the complete product loop:
+<p align="center">
+  <a href="https://github.com/joboyebisi/CrowdPulseAI/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/joboyebisi/CrowdPulseAI/actions/workflows/ci.yml/badge.svg" /></a>
+  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-0b0b12?logo=nextdotjs" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white" />
+  <img alt="Twitch EventSub" src="https://img.shields.io/badge/Twitch-EventSub-9146FF?logo=twitch&logoColor=white" />
+  <img alt="Creator controlled" src="https://img.shields.io/badge/AI-creator%20controlled-7CFF6B" />
+</p>
 
-1. A creator connects a Twitch channel using OAuth authorization code flow.
-2. A persistent Node.js process listens to `channel.chat.message` through EventSub WebSockets.
-3. Unique viewer votes are aggregated inside a sliding time window with a cooldown.
-4. Twitch Create Clip is called and Get Clips is polled for up to 15 seconds.
-5. The Moment Agent creates grounded copy from the available chat context.
-6. The creator approves or rejects the candidate.
-7. An approved moment receives a shareable page and appears in the OBS overlay.
+## Why CrowdPulse
 
-Demo events and demo moments are visibly labelled and never represented as Twitch activity.
+Sports streams are not ordinary broadcasts. Excitement starts before kickoff, spikes unpredictably during play, and continues after the final whistle. CrowdPulse connects that whole arc:
+
+| Before the stream | During the stream | After the moment |
+| --- | --- | --- |
+| Match lobby, countdown, fan predictions, polls, trivia, supporter check-ins | Real Twitch chat, unique `!hype` voting, moment detection, clip creation, OBS overlay | Creator review, grounded AI copy, share page, community recap |
+
+> **Core principle:** the crowd provides the signal, AI assists with context, and the creator makes the final call.
+
+## Current product loop
+
+```mermaid
+flowchart LR
+    A[Twitch chat] -->|unique !hype votes| B[Crowd signal]
+    B -->|threshold reached| C[Twitch clip]
+    C --> D[Moment Agent]
+    D --> E{Creator review}
+    E -->|approve| F[Share page + OBS overlay]
+    E -->|reject| G[Discard]
+```
+
+The working MVP includes:
+
+- Twitch OAuth using the authorization-code flow
+- `channel.chat.message` events over EventSub WebSockets
+- Unique-viewer hype aggregation, sliding window, and cooldown
+- Twitch Create Clip plus readiness polling
+- Chat-grounded caption generation with a transparent fallback
+- Creator approval and rejection
+- Public moment pages and a transparent OBS browser source
+- A clearly labelled demo path that is never presented as real Twitch activity
+
+## Next product frontier: Pre-Match Hype
+
+CrowdPulse will give creators a shareable match lobby before they go live. Fans can check in, submit score predictions, answer a match poll or trivia prompt, and raise a visible community hype meter. At go-live, CrowdPulse turns those responses into the creator's opening talking points and carries the crowd state into the live overlay.
+
+Read the [research brief](docs/research/prestream-engagement.md), [updated PRD](docs/hackathon-build/prd.md), and [product roadmap](docs/ROADMAP.md).
 
 ## Quick start
 
@@ -22,30 +62,62 @@ copy .env.example .env.local
 npm run dev
 ```
 
-Open `http://localhost:3000`. The landing page and labelled demo flow work without third-party credentials.
-
-For live Twitch integration, follow [docs/TWITCH_SETUP.md](docs/TWITCH_SETUP.md).
+Open `http://localhost:3000`. The landing page and labelled demo work without third-party credentials. For real Twitch activity, follow the [Twitch setup guide](docs/TWITCH_SETUP.md).
 
 ## Commands
 
-```bash
-npm run dev      # local development server
-npm run check    # TypeScript validation
-npm test         # hype detector tests
-npm run build    # production build
-npm start        # persistent Node.js production server
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start local development |
+| `npm run check` | Run TypeScript validation |
+| `npm run lint` | Run ESLint |
+| `npm test` | Run hype-detector tests |
+| `npm run build` | Create a production build |
+| `npm start` | Run the persistent Node.js server |
+
+## Architecture
+
+The web experience can run on Vercel, but the Twitch EventSub connection requires durable runtime state. The production design separates the web application from an always-on listener and stores sessions, moments, and crowd activity in shared infrastructure.
+
+```mermaid
+flowchart TB
+    V[Viewers] --> W[Vercel web app]
+    C[Creator dashboard] --> W
+    W --> DB[(PostgreSQL)]
+    W --> R[(Redis)]
+    T[Twitch EventSub] <--> L[Always-on listener]
+    L --> DB
+    L --> R
+    L --> API[Twitch Clips API]
+    DB --> W
 ```
 
-## Important deployment constraint
+See [Architecture](docs/ARCHITECTURE.md) for runtime boundaries and deployment guidance.
 
-The EventSub listener is held by the Node.js process. Deploy this project to a persistent Node host (for example Railway, Render, Fly.io, or a VM), not a request-isolated serverless function. The web UI may be separated onto Vercel later, but the listener and moment pipeline must remain persistent.
+## Product principles
 
-The current hackathon store is process memory by design, so restarting the server clears moments. PostgreSQL and Redis are the next production step.
+- **Creator control:** no moment is published automatically.
+- **Community signal:** duplicate votes never inflate hype.
+- **Grounded AI:** no invented scores, teams, players, or match facts.
+- **Clear provenance:** demo, AI-generated, and live Twitch data remain distinguishable.
+- **Rights-aware:** CrowdPulse handles creator commentary and Twitch-authorised clips; it does not assume rights to sports footage.
+- **Accessible participation:** core pre-match activities remain useful without gambling or Channel Points.
 
-## Safety and permissions
+## Repository map
 
-- OAuth credentials are encrypted into an HTTP-only, same-site cookie.
-- The MVP asks only for `user:read:chat` and `clips:edit`.
-- AI copy is labelled and instructed not to invent scores, teams, players, or match facts.
-- Every moment requires creator approval before its share page becomes available.
-- Only the creator's commentary and Twitch-authorised clip are handled; CrowdPulse does not assume rights to sports broadcast footage.
+```text
+src/app/                 Next.js routes and API handlers
+src/components/          Landing, dashboard, and overlay UI
+src/lib/                 Twitch, EventSub, session, hype, and AI logic
+tests/                   Unit tests
+docs/                    Product, architecture, setup, and research
+.github/                 CI and contribution templates
+```
+
+## Contributing and security
+
+Contributions are welcome through focused issues and pull requests. Start with [CONTRIBUTING.md](CONTRIBUTING.md). Report sensitive findings according to [SECURITY.md](SECURITY.md), not in a public issue.
+
+---
+
+<p align="center"><strong>Before kickoff. During chaos. After history.</strong></p>

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="520" viewBox="0 0 1600 520" role="img" aria-labelledby="title desc">
+  <title id="title">CrowdPulse AI</title>
+  <desc id="desc">The audience intelligence layer for live sports creators</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#090912"/>
+      <stop offset=".55" stop-color="#17112d"/>
+      <stop offset="1" stop-color="#090912"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop offset="0" stop-color="#9146ff" stop-opacity=".75"/>
+      <stop offset="1" stop-color="#9146ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="18"/></filter>
+  </defs>
+  <rect width="1600" height="520" rx="32" fill="url(#bg)"/>
+  <circle cx="1330" cy="70" r="360" fill="url(#glow)" filter="url(#soft)"/>
+  <circle cx="160" cy="510" r="280" fill="#7cff6b" opacity=".09" filter="url(#soft)"/>
+  <g opacity=".16" stroke="#fff">
+    <path d="M0 410 C260 310 430 470 700 350 S1180 250 1600 360" fill="none" stroke-width="2"/>
+    <path d="M0 445 C260 345 430 505 700 385 S1180 285 1600 395" fill="none"/>
+  </g>
+  <g transform="translate(118 112)">
+    <rect width="86" height="86" rx="23" fill="#9146ff"/>
+    <path d="M20 47h11l8-20 11 38 9-24h8" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="112" y="66" fill="#fff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="68" font-weight="800" letter-spacing="-2">CrowdPulse<tspan fill="#7cff6b"> AI</tspan></text>
+    <text x="2" y="154" fill="#fff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="44" font-weight="700">Every moment has a crowd.</text>
+    <text x="2" y="207" fill="#bdb8d4" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="27">The audience intelligence layer for live sports creators.</text>
+    <g transform="translate(2 254)" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20" font-weight="700">
+      <rect width="178" height="48" rx="24" fill="#7cff6b"/><text x="24" y="31" fill="#09110a">BEFORE KICKOFF</text>
+      <rect x="194" width="173" height="48" rx="24" fill="#251c42"/><text x="219" y="31" fill="#fff">DURING CHAOS</text>
+      <rect x="383" width="166" height="48" rx="24" fill="#251c42"/><text x="410" y="31" fill="#fff">AFTER HISTORY</text>
+    </g>
+  </g>
+  <g transform="translate(1260 290)">
+    <circle cx="0" cy="0" r="12" fill="#7cff6b"/>
+    <circle cx="0" cy="0" r="34" fill="none" stroke="#7cff6b" stroke-width="3" opacity=".55"/>
+    <circle cx="0" cy="0" r="63" fill="none" stroke="#7cff6b" stroke-width="2" opacity=".24"/>
+    <circle cx="0" cy="0" r="94" fill="none" stroke="#7cff6b" opacity=".12"/>
+  </g>
+</svg>
