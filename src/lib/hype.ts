@@ -1,5 +1,5 @@
 export function isHypeCommand(message: string) {
-  return message.trim().toLowerCase() === "!hype";
+  return ["!hype", "!clip", "!moment"].includes(message.trim().toLowerCase());
 }
 
 export function uniqueVotesWithinWindow(

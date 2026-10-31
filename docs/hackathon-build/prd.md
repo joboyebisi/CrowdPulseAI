@@ -150,6 +150,31 @@ Acceptance criteria:
 - Overlays never expose private viewer data.
 - Moment pages have stable URLs, attribution, and share-ready metadata.
 
+## Epic 9 — Agent-orchestrated growth package
+
+**Story:** As a creator, I want one crowd-selected moment turned into a review-ready campaign so I can act while the stream is still relevant.
+
+Acceptance criteria:
+
+- Signal Scout, Clip Director, Pundit, and Growth Producer states are visible in the dashboard.
+- The Pundit produces a short call grounded only in supplied chat and creator context.
+- The Growth Producer creates distinct drafts for TikTok, YouTube Shorts, and X.
+- The streamer can edit every generated field before approval or copying.
+- Provider failure falls back transparently without blocking clip review.
+- No agent claims a vertical edit or social post happened when it did not.
+
+## Epic 10 — Moment Cards and collections
+
+**Story:** As a creator, I want approved moments to become durable community objects so viewers can relive a season and see how the crowd helped make it.
+
+Acceptance criteria:
+
+- Every card records creator, Twitch clip provenance, timestamp, trigger window, hype score, and approved copy.
+- Cards can be grouped by match, season, rivalry, or creator-defined collection.
+- Contributor recognition is non-monetary and privacy-aware.
+- Rights and licensing are explicit; a card never implies ownership of third-party match footage.
+- Wallets, resale, artificial scarcity, and NFTs are excluded from the initial release.
+
 ## Edge cases
 
 - **No audience:** show creator prompts and sharing actions, not fabricated activity.
@@ -169,7 +194,7 @@ Acceptance criteria:
 
 ### P0 — Working live-moment MVP
 
-- Twitch OAuth, EventSub chat, hype detection, clips, grounded captions, approval, sharing, and OBS overlay
+- Twitch OAuth, EventSub chat, hype detection, clips, Gemini 3.8 pundit copy, platform-specific social drafts, approval, sharing, and an optional speaking OBS overlay
 
 ### P1 — Pre-Match Hype MVP
 
@@ -196,6 +221,8 @@ Acceptance criteria:
 - Discord and social reminders with creator confirmation
 - Post-match recap rooms and longitudinal community insights
 - Multi-stream rivalry rooms and sponsor-safe activations
+- A Render Agent integration for vertical reframing, subtitles, and approved export
+- Moment Card collections, contributor quests, and creator-owned season recaps
 
 ## Non-goals
 

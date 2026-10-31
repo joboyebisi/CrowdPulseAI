@@ -9,6 +9,12 @@ export type ChatSignal = {
   simulated?: boolean;
 };
 
+export type SocialDraft = {
+  platform: "TikTok" | "YouTube Shorts" | "X";
+  copy: string;
+  hashtags: string[];
+};
+
 export type Moment = {
   id: string;
   createdAt: string;
@@ -17,6 +23,9 @@ export type Moment = {
   creatorName: string;
   title: string;
   caption: string;
+  punditLine: string;
+  socialDrafts: SocialDraft[];
+  agentProvider: string;
   status: MomentStatus;
   hypeVotes: number;
   contributors: string[];

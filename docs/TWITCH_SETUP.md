@@ -54,6 +54,10 @@ Add a Browser Source in OBS:
 
 The overlay background is transparent. It shows a compact ready indicator until the first moment arrives.
 
+Append `?voice=1` to enable browser-based pundit speech:
+
+`http://localhost:3000/overlay?voice=1`
+
 ## Twitch behavior to expect
 
 - EventSub first sends a welcome message. CrowdPulse uses its session ID to create the `channel.chat.message` subscription.
@@ -64,4 +68,4 @@ The overlay background is transparent. It shows a compact ready indicator until 
 
 ## Optional AI captions
 
-Set `OPENAI_API_KEY` to enable structured AI captions. Without it, CrowdPulse uses a transparent deterministic fallback so Twitch integration can still be demonstrated.
+Set `GEMINI_API_KEY` and `GEMINI_MODEL=gemini-3.8-flash` to enable the Pundit and Growth Producer agents. OpenAI remains an optional secondary provider. Without either key, CrowdPulse uses a transparent deterministic package so the Twitch workflow still works.

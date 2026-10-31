@@ -4,6 +4,8 @@ import { isHypeCommand, uniqueVotesWithinWindow } from "../src/lib/hype";
 
 test("recognises a case-insensitive hype command with surrounding whitespace", () => {
   assert.equal(isHypeCommand("  !HyPe  "), true);
+  assert.equal(isHypeCommand("!clip"), true);
+  assert.equal(isHypeCommand("!moment"), true);
   assert.equal(isHypeCommand("that was hype"), false);
 });
 

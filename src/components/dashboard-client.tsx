@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import {
-  Activity, ArrowUpRight, Check, CircleAlert, Copy, Flame, Loader2,
-  LogOut, Play, Radio, Sparkles, Square, Twitch, X,
+  Activity, ArrowUpRight, Bot, Check, CircleAlert, Copy, Flame, Loader2,
+  LogOut, Megaphone, Play, Radio, Sparkles, Square, Twitch, Volume2, X,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { Moment, RuntimeState } from "@/lib/types";
 
 type SessionState = {
   configured: boolean;
+  agentProvider: string;
   authenticated: boolean;
   user: { id: string; login: string; displayName: string } | null;
 };
@@ -97,8 +98,8 @@ export function DashboardClient() {
       <main className="dashboard-main">
         <header className="dashboard-header" id="live">
           <div>
-            <p>CREATOR CONTROL ROOM</p>
-            <h1>Live pulse</h1>
+            <p>CROWDPULSE AGENT CONTROL ROOM</p>
+            <h1>Turn crowd energy into growth.</h1>
           </div>
           <div className={`connection-pill ${state.connected ? "online" : ""}`}>
             <i /> {state.connected ? "Listening live" : state.connecting ? "Connecting…" : "Listener offline"}
@@ -106,6 +107,16 @@ export function DashboardClient() {
         </header>
 
         {notice && <div className="notice"><CircleAlert size={18} /> {notice}<button onClick={() => setNotice(null)}><X size={16} /></button></div>}
+
+        <section className="agent-rail" aria-label="Moment agent pipeline">
+          <div><Bot size={18} /><span><b>01 Signal Scout</b><small>Unique chat commands detect intent</small></span></div>
+          <i />
+          <div><Flame size={18} /><span><b>02 Clip Director</b><small>Twitch captures the live window</small></span></div>
+          <i />
+          <div><Volume2 size={18} /><span><b>03 Pundit</b><small>{session?.agentProvider ?? "Grounded AI"} packages the story</small></span></div>
+          <i />
+          <div><Megaphone size={18} /><span><b>04 Growth Producer</b><small>Creator-approved social drafts</small></span></div>
+        </section>
 
         <section className="control-grid">
           <article className="control-card twitch-card">
@@ -140,7 +151,7 @@ export function DashboardClient() {
             <div className="meter"><i style={{ width: `${signalStrength}%` }} /></div>
             <div className="metric-row"><span><b>{state.hypeWindowSeconds}s</b> voting window</span><span><b>{state.cooldownSeconds}s</b> cooldown</span></div>
             <button className="button button-secondary full" disabled={busy === "demo"} onClick={() => action("demo", "/api/demo/trigger")}>
-              {busy === "demo" ? <Loader2 className="spin" size={17} /> : <Play size={17} />} Run labelled demo
+              {busy === "demo" ? <Loader2 className="spin" size={17} /> : <Play size={17} />} Run sandbox rehearsal
             </button>
           </article>
 
@@ -188,10 +199,18 @@ function MomentReview({ moment, busy, action }: { moment: Moment; busy: string |
       <div className="review-meta"><span><Flame size={15} /> {moment.hypeVotes} hype votes</span><span>{moment.simulated ? "SIMULATED DEMO" : "LIVE TWITCH"}</span></div>
       <h3>{moment.title}</h3>
       <p>{moment.caption}</p>
+      <div className="pundit-line"><Volume2 size={16} /><span><small>PUNDIT VOICE</small>{moment.punditLine}</span></div>
+      {moment.socialDrafts.length > 0 && (
+        <div className="social-drafts">
+          {moment.socialDrafts.map((draft) => (
+            <div key={draft.platform}><small>{draft.platform}</small><p>{draft.copy}</p><em>{draft.hashtags.join(" ")}</em></div>
+          ))}
+        </div>
+      )}
       {moment.failureReason && <div className="failure"><CircleAlert size={15} /> {moment.failureReason}</div>}
       <div className="context-chips">{moment.contributors.slice(0, 4).map((name) => <span key={name}>@{name}</span>)}</div>
       <div className="review-footer">
-        <small>{moment.aiGenerated ? "AI-GENERATED · " : ""}{status}</small>
+        <small>{moment.aiGenerated ? `${moment.agentProvider.toUpperCase()} · ` : ""}{status}</small>
         {moment.status === "pending" && <div className="button-row">
           <button className="button button-secondary" disabled={busy === moment.id} onClick={() => action(moment.id, `/api/moments/${moment.id}/reject`)}><X size={16} /> Reject</button>
           <button className="button button-primary" disabled={busy === moment.id} onClick={() => action(moment.id, `/api/moments/${moment.id}/approve`)}><Check size={16} /> Approve</button>

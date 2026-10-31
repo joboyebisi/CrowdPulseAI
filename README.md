@@ -44,15 +44,18 @@ The working MVP includes:
 - Unique-viewer hype aggregation, sliding window, and cooldown
 - Twitch Create Clip plus readiness polling
 - Chat-grounded caption generation with a transparent fallback
+- Gemini 3.8-powered Pundit and Growth Producer agents
+- Distinct TikTok, YouTube Shorts, and X drafts for every candidate
+- Optional spoken OBS commentary with `/overlay?voice=1`
 - Creator approval and rejection
 - Public moment pages and a transparent OBS browser source
-- A clearly labelled demo path that is never presented as real Twitch activity
+- A sandbox rehearsal for setup checks; real Twitch is the primary workflow
 
 ## Next product frontier: Pre-Match Hype
 
 CrowdPulse will give creators a shareable match lobby before they go live. Fans can check in, submit score predictions, answer a match poll or trivia prompt, and raise a visible community hype meter. At go-live, CrowdPulse turns those responses into the creator's opening talking points and carries the crowd state into the live overlay.
 
-Read the [research brief](docs/research/prestream-engagement.md), [updated PRD](docs/hackathon-build/prd.md), and [product roadmap](docs/ROADMAP.md).
+Read the [product positioning](docs/PRODUCT_POSITIONING.md), [research brief](docs/research/prestream-engagement.md), [updated PRD](docs/hackathon-build/prd.md), and [product roadmap](docs/ROADMAP.md).
 
 ## Quick start
 
@@ -62,7 +65,7 @@ copy .env.example .env.local
 npm run dev
 ```
 
-Open `http://localhost:3000`. The landing page and labelled demo work without third-party credentials. For real Twitch activity, follow the [Twitch setup guide](docs/TWITCH_SETUP.md).
+Open `http://localhost:3000`. Use the sandbox rehearsal to verify the UI without credentials; the primary workflow connects to real Twitch OAuth, EventSub chat, and Clips. Follow the [Twitch setup guide](docs/TWITCH_SETUP.md).
 
 ## Commands
 
