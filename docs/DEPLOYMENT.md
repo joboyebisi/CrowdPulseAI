@@ -7,6 +7,7 @@
 - Source branch: `main`
 - Durable integration revision: `c4d49c7`
 - Production bootstrap revision: `5e5c369`
+- Creator login and OAuth hostname fix: `e9733ad`
 - Status: Ready
 
 The production environment has the AWS backend URL and internal bootstrap secret. Its protected sync route transferred the existing server-side Twitch and Gemini configuration into AWS without exposing those values locally.
@@ -37,6 +38,7 @@ These ARNs are identifiers, not secret values. Retrieve secret values only into 
 - A production smoke test passed Match Room create, creator list, public read, supporter join, and opening brief operations.
 - Smoke-test records were removed from DynamoDB.
 - The Vercel session endpoint reports Twitch configured and Gemini active.
+- Live OAuth inspection confirms Twitch receives `https://crowd-pulse-ai-delta.vercel.app/api/auth/twitch/callback`; signed-out `/dashboard` requests redirect to `/login`.
 
 ## Operational commands
 
