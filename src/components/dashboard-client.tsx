@@ -3,7 +3,7 @@
 import Link from "next/link";
 import {
   Activity, ArrowUpRight, Bot, Check, CircleAlert, Copy, Flame, Loader2,
-  LogOut, Megaphone, MessageCircle, Play, Radio, Sparkles, Square, Twitch, Volume2, X,
+  LogOut, Megaphone, MessageCircle, Mic2, MonitorUp, Play, Radio, Sparkles, Square, Twitch, Users, Volume2, X,
 } from "lucide-react";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import type { Moment, MomentAgentName, RuntimeState } from "@/lib/types";
@@ -15,6 +15,14 @@ type SessionState = {
   agentProvider: string;
   authenticated: boolean;
   user: { id: string; login: string; displayName: string } | null;
+};
+
+type LiveStatus = {
+  live: boolean;
+  checkedAt: string;
+  channelUrl: string;
+  streamManagerUrl: string;
+  stream: { title: string; game_name: string; viewer_count: number; started_at: string } | null;
 };
 
 const emptyState: RuntimeState = {
@@ -52,6 +60,9 @@ export function DashboardClient({ demoMode = false }: { demoMode?: boolean }) {
   const [state, setState] = useState<RuntimeState>(emptyState);
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [liveStatus, setLiveStatus] = useState<LiveStatus | null>(demoMode ? {
+    live: false, checkedAt: new Date().toISOString(), channelUrl: "https://www.twitch.tv", streamManagerUrl: "https://dashboard.twitch.tv", stream: null,
+  } : null);
 
   const refresh = useCallback(async () => {
     if (demoMode) return;
@@ -59,9 +70,16 @@ export function DashboardClient({ demoMode = false }: { demoMode?: boolean }) {
       fetch("/api/auth/session", { cache: "no-store" }),
       fetch("/api/state", { cache: "no-store" }),
     ]);
-    setSession(await sessionResponse.json());
+    const sessionPayload = await sessionResponse.json() as SessionState;
+    setSession(sessionPayload);
     if (stateResponse.ok) setState(await stateResponse.json());
   }, [demoMode]);
+
+  const refreshLiveStatus = useCallback(async () => {
+    if (demoMode || !session?.authenticated) return;
+    const response = await fetch("/api/twitch/live-status", { cache: "no-store" });
+    if (response.ok) setLiveStatus(await response.json());
+  }, [demoMode, session?.authenticated]);
 
   useEffect(() => {
     if (demoMode) return;
@@ -72,6 +90,13 @@ export function DashboardClient({ demoMode = false }: { demoMode?: boolean }) {
       window.clearInterval(timer);
     };
   }, [demoMode, refresh]);
+
+  useEffect(() => {
+    if (demoMode || !session?.authenticated) return;
+    const initial = window.setTimeout(() => void refreshLiveStatus(), 0);
+    const timer = window.setInterval(refreshLiveStatus, 15_000);
+    return () => { window.clearTimeout(initial); window.clearInterval(timer); };
+  }, [demoMode, refreshLiveStatus, session?.authenticated]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -120,6 +145,7 @@ export function DashboardClient({ demoMode = false }: { demoMode?: boolean }) {
         <nav>
           <a className="active" href="#live"><Activity size={18} /> Live control</a>
           <a href="#match-rooms"><MessageCircle size={18} /> Match &amp; banter</a>
+          <Link href={demoMode ? `/rooms/clasico-2026-crowd-room#banter-room` : "/demo"}><Users size={18} /> Live experience <ArrowUpRight size={15} /></Link>
           <a href="#moments"><Sparkles size={18} /> Moments <b>{pending.length}</b></a>
           <Link href="/overlay"><Radio size={18} /> OBS overlay <ArrowUpRight size={15} /></Link>
         </nav>
@@ -160,6 +186,30 @@ export function DashboardClient({ demoMode = false }: { demoMode?: boolean }) {
         </section>
 
         <FootballPulse />
+
+        <section className="live-launchpad" aria-labelledby="live-launchpad-title">
+          <div className="launchpad-copy">
+            <p><Radio size={14} /> CREATOR LIVE LAUNCHPAD</p>
+            <h2 id="live-launchpad-title">From warm-up to live, without losing the crowd.</h2>
+            <span>CrowdPulse prepares the room and listens for the whistle. Twitch and your encoder carry the video.</span>
+          </div>
+          <div className="launchpad-status">
+            <i className={liveStatus?.live ? "live" : ""} />
+            <span><small>TWITCH STATUS</small><b>{demoMode ? "Preview rehearsal" : liveStatus?.live ? "You are live" : "Ready to broadcast"}</b></span>
+            {liveStatus?.stream && <em>{liveStatus.stream.viewer_count} watching · {liveStatus.stream.game_name || "Live channel"}</em>}
+          </div>
+          <div className="launchpad-steps">
+            <span><b>1</b><small>Warm up</small>Open a Match Room</span>
+            <span><b>2</b><small>Broadcast</small>Start video in OBS/Twitch</span>
+            <span><b>3</b><small>Kick off</small>CrowdPulse detects reactions</span>
+          </div>
+          <div className="launchpad-actions">
+            <Link className="button button-primary" href="/demo"><Play size={17} /> Open live experience preview</Link>
+            {!demoMode && session?.authenticated && <a className="button button-secondary" href={liveStatus?.streamManagerUrl ?? `https://dashboard.twitch.tv/u/${encodeURIComponent(session.user?.login ?? "")}/stream-manager`} target="_blank" rel="noreferrer"><MonitorUp size={17} /> Open Twitch Stream Manager <ArrowUpRight size={15} /></a>}
+            {demoMode && <Link className="button button-secondary" href={`/rooms/clasico-2026-crowd-room#banter-room`}><Mic2 size={17} /> Enter Banter Arena</Link>}
+          </div>
+          <small className="launchpad-truth">CrowdPulse never displays or stores your Twitch stream key. Stage nominations remain creator-approved before any guest handoff.</small>
+        </section>
 
         <MatchRoomManager authenticated={Boolean(session?.authenticated)} demoMode={demoMode} />
 

@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2, Flame, MessageCircle, Radio, Send, Sparkles, Trophy, Users } from "lucide-react";
+import { Bot, CheckCircle2, Crown, Flame, Gauge, MessageCircle, Mic2, Radio, Send, Sparkles, Trophy, Users } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Logo } from "@/components/logo";
 import type { MatchRoomSummary } from "@/lib/types";
 import { CLASICO_DEMO_ROOM_ID } from "@/lib/demo-match";
+import { buildBanterStandings, scoreBanter, topBanter } from "@/lib/banter-agent";
 
 function countdown(kickoffAt: string) {
   const difference = Math.max(0, new Date(kickoffAt).getTime() - Date.now());
@@ -28,6 +29,7 @@ export function MatchRoomClient({ initialRoom, demoMode = false }: { initialRoom
   const [banterTeam, setBanterTeam] = useState(room.homeTeam);
   const [banterBusy, setBanterBusy] = useState(false);
   const [banterNotice, setBanterNotice] = useState<string | null>(null);
+  const [stageNomineeId, setStageNomineeId] = useState<string | null>(null);
 
   useEffect(() => {
     if (demoMode) return;
@@ -52,6 +54,10 @@ export function MatchRoomClient({ initialRoom, demoMode = false }: { initialRoom
     () => Object.values(room.pollCounts).reduce((total, count) => total + count, 0),
     [room.pollCounts],
   );
+  const banterMessages = useMemo(() => room.recentBanter ?? [], [room.recentBanter]);
+  const banterStandings = useMemo(() => buildBanterStandings(banterMessages, room.homeTeam, room.awayTeam), [banterMessages, room.homeTeam, room.awayTeam]);
+  const banterLeader = useMemo(() => topBanter(banterMessages), [banterMessages]);
+  const stageNominee = banterMessages.find((message) => message.id === stageNomineeId) ?? null;
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -131,7 +137,7 @@ export function MatchRoomClient({ initialRoom, demoMode = false }: { initialRoom
           {Object.entries(clock).map(([label, value]) => <div key={label}><b>{String(value).padStart(2, "0")}</b><small>{label}</small></div>)}
         </div>
         <div className="room-crowd"><Users size={18} /><b>{room.supporterCount}</b> supporters checked in <Flame size={18} /><b>{room.predictionCount}</b> predictions</div>
-        <a className="button button-secondary room-banter-jump" href="#banter-room"><MessageCircle size={17} /> Join the Banter Room · {room.banterCount ?? 0} shouts</a>
+        <a className="button button-secondary room-banter-jump" href="#banter-room"><MessageCircle size={17} /> Enter the Banter Arena · {room.banterCount ?? 0} shouts</a>
       </section>
 
       <section className="match-room-grid page-width">
@@ -167,7 +173,16 @@ export function MatchRoomClient({ initialRoom, demoMode = false }: { initialRoom
       </section>
 
       <section className="banter-room page-width" id="banter-room">
-        <div className="banter-heading"><div><small>📣 THE DIGITAL TERRACE</small><h2>Banter Room</h2><p>Match-day takes, rival replies, and the lines worth putting on stream.</p></div><span>{room.banterCount ?? 0} shouts</span></div>
+        <div className="banter-heading"><div><small>🏆 AI-ORCHESTRATED MATCH-UP</small><h2>Banter Arena</h2><p>Two clubs go head-to-head. The Banter Ref scores wit, relevance, energy, and sportsmanship.</p></div><span>{room.banterCount ?? 0} shouts</span></div>
+        <div className="banter-scoreboard" aria-label="Live banter standings">
+          {banterStandings.map((standing, index) => <article key={standing.team} className={index === 1 ? "away" : "home"}><small>{index === 0 ? "HOME END" : "AWAY END"}</small><strong>{standing.team}</strong><b>{standing.points} pts</b><span>{standing.shouts} shouts · {standing.average || "—"} avg</span></article>)}
+          <div className="banter-ref"><Bot /><small>BANTER REF</small><strong>{banterStandings[0].points === banterStandings[1].points ? "Dead level" : `${[...banterStandings].sort((a, b) => b.points - a.points)[0].team} lead`}</strong><span>Live scoring · safe shouts only</span></div>
+        </div>
+        <div className="banter-director">
+          <div><Gauge /><span><small>HOST CUE</small><b>{banterLeader ? `${banterLeader.message.team}: defend this take in 20 seconds.` : "Call for the opening shout from both ends."}</b></span></div>
+          <div><Mic2 /><span><small>STAGE NOMINATION</small><b>{stageNominee ? `@${stageNominee.displayName} is ready for creator approval.` : "The creator chooses who gets invited on stream."}</b></span></div>
+          {stageNominee && <button className="button button-secondary" onClick={() => setStageNomineeId(null)}>Clear nomination</button>}
+        </div>
         <div className="banter-layout">
           <form className="banter-form" onSubmit={submitBanter}>
             <label>Supporter name<input required maxLength={30} value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Your terrace name" /></label>
@@ -178,7 +193,7 @@ export function MatchRoomClient({ initialRoom, demoMode = false }: { initialRoom
           </form>
           <div className="banter-feed">
             {(room.recentBanter ?? []).length === 0 ? <div className="banter-empty"><MessageCircle /><h3>First whistle, first shout.</h3><p>Start the friendly rivalry before kickoff.</p></div> : room.recentBanter?.map((item) => (
-              <article key={item.id}><div><b>{item.displayName}</b><span>{item.team}</span></div><p>{item.message}</p><small>{new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</small></article>
+              <article key={item.id} className={stageNomineeId === item.id ? "nominated" : ""}><div><b>{item.displayName}</b><span>{item.team}</span></div><p>{item.message}</p><div className="banter-verdict"><span><Sparkles size={12} /> {scoreBanter(item).verdict}</span><b>{scoreBanter(item).total}/100</b></div><footer><small>{new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</small>{scoreBanter(item).safe && <button type="button" onClick={() => setStageNomineeId(item.id)}><Crown size={13} /> Nominate to stage</button>}</footer></article>
             ))}
           </div>
         </div>

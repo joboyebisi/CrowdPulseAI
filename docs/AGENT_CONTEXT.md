@@ -18,6 +18,10 @@
 - The live experience preview uses `public/media/demo-streamer-reaction.png`, an AI-designed fictional creator reaction with visible provenance and no match footage or real-person likeness.
 - Public Banter Room writes reject links/control characters and use a durable DynamoDB ten-second per-supporter cooldown.
 - Twitch Developer Console now registers the canonical production callback `https://crowd-pulse-ai-delta.vercel.app/api/auth/twitch/callback`.
+- The creator dashboard now includes a Live Launchpad that polls Twitch Helix for the authenticated channel's real live state, links to Twitch Stream Manager, exposes the live-experience preview, and states the OBS/encoder boundary without requesting or storing a stream key.
+- The Banter Room is now the AI Banter Arena: transparent wit/relevance/energy/sportsmanship scores, safe-only club standings, host response cues, and creator-controlled stage nomination. Stage nomination is a UI handoff and never claims a Twitch guest has joined.
+- An empty creator account always shows a direct Banter Arena preview link, so the feature is discoverable before the first Match Room is created.
+- The complete four-minute narrative lives in `docs/DEMO_SCRIPT.md`; the extended requirements live in `docs/hackathon-build/prd.md`; `devpost-submission.md` is a provisional, explicitly unsubmitted application draft because the repository has no registered Devpost hackathon state.
 
 ## Production deployment - November 2, 2026
 
@@ -52,10 +56,10 @@ Vercel's protected bootstrap route synchronized the existing Twitch and Gemini c
 
 ## Immediate continuation order
 
-1. Open the production app and choose **Connect Twitch** so the streamer grants consent; this persists the real encrypted creator grant and registers the EventSub subscription.
-2. Use `/demo` for the no-stream judge walkthrough, then send live chat hype from distinct Twitch viewers for the separate integration proof.
-3. Complete screenshot-based desktop/mobile visual QA across the landing page, dashboard, Match Rooms, moment review, overlay, and public pages.
-4. Polish any visual issues, then follow `docs/DEMO_RUNBOOK.md` and record the demo.
+1. Push and deploy the Live Launchpad/Banter Arena revision, then verify `/api/twitch/live-status` with the authenticated production session.
+2. Use `/demo` for the no-stream walkthrough, then send live chat hype from distinct Twitch viewers for the separate integration proof.
+3. Record the flow in `docs/DEMO_SCRIPT.md` and add the resulting video URL/screenshots to `devpost-submission.md`.
+4. Initialize the official Devpost workflow with `$start-hackathon`, reconcile event-specific rules, then prepare/submit only after explicit confirmation.
 5. Create a least-privilege AWS deployment role before routine AWS maintenance; the initial bootstrap used a root login session.
 
 Never copy secret values from Secrets Manager into documentation, Git, client-side variables, or command output.

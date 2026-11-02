@@ -116,14 +116,14 @@ export function MatchRoomManager({ authenticated, demoMode = false }: { authenti
           <div className="wide form-actions"><button type="button" className="button button-ghost" onClick={() => setShowForm(false)}>Cancel</button><button className="button button-primary" disabled={busy}>{busy ? <Loader2 className="spin" size={17} /> : <Sparkles size={17} />} Open the room</button></div>
         </form>
       )}
-      {authenticated && rooms.length === 0 && !showForm && <div className="match-manager-empty"><Flame /><div><h3>No fixture on the board yet.</h3><p>Create a room for predictions, polls, and supporter check-ins.</p></div></div>}
+      {authenticated && rooms.length === 0 && !showForm && <div className="match-manager-empty room-empty-actions"><Flame /><div><h3>No fixture on the board yet.</h3><p>Create a room for predictions, polls, supporter check-ins, and a live Banter Arena.</p></div><Link className="button button-secondary" href="/rooms/clasico-2026-crowd-room#banter-room"><MessageCircle size={16} /> Preview Banter Arena <ArrowUpRight size={15} /></Link></div>}
       <div className="match-room-list">
         {rooms.map((room) => {
           const shareUrl = typeof window === "undefined" ? `/rooms/${room.id}` : `${window.location.origin}/rooms/${room.id}`;
           return (
             <article key={room.id}>
               <div><small>{room.status.toUpperCase()} · {new Date(room.kickoffAt).toLocaleString()}</small><h3>{room.homeTeam} <em>vs</em> {room.awayTeam}</h3><p><Users size={15} /> {room.supporterCount} checked in · {room.predictionCount} predictions · {room.banterCount ?? 0} banter posts</p>{room.recentBanter?.[0] && <blockquote>“{room.recentBanter[0].message}” <b>— {room.recentBanter[0].displayName}</b></blockquote>}</div>
-              <div className="button-row"><button className="button button-ghost" onClick={() => loadBrief(room.id)}><Sparkles size={16} /> Opening brief</button>{!demoMode && <button className="icon-button" title="Copy supporter link" onClick={() => navigator.clipboard.writeText(shareUrl)}><Copy size={17} /></button>}{(!demoMode || room.id === CLASICO_DEMO_ROOM.id) && <Link className="button button-secondary" href={`/rooms/${room.id}#banter-room`}><MessageCircle size={16} /> Open Banter Room <ArrowUpRight size={16} /></Link>}</div>
+              <div className="button-row"><button className="button button-ghost" onClick={() => loadBrief(room.id)}><Sparkles size={16} /> Opening brief</button>{!demoMode && <button className="icon-button" title="Copy supporter link" onClick={() => navigator.clipboard.writeText(shareUrl)}><Copy size={17} /></button>}{(!demoMode || room.id === CLASICO_DEMO_ROOM.id) && <Link className="button button-secondary" href={`/rooms/${room.id}#banter-room`}><MessageCircle size={16} /> Open Banter Arena <ArrowUpRight size={16} /></Link>}</div>
               {briefs[room.id] && <div className="opening-brief"><small>🎙️ YOUR OPENING TALKING POINTS</small>{briefs[room.id].map((line) => <p key={line}>{line}</p>)}</div>}
             </article>
           );

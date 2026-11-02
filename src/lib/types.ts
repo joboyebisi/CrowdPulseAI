@@ -98,6 +98,23 @@ export type BanterMessage = {
   createdAt: string;
 };
 
+export type BanterScore = {
+  total: number;
+  wit: number;
+  relevance: number;
+  energy: number;
+  sportsmanship: number;
+  verdict: string;
+  safe: boolean;
+};
+
+export type BanterTeamStanding = {
+  team: string;
+  points: number;
+  shouts: number;
+  average: number;
+};
+
 export type MatchRoom = {
   id: string;
   creatorId: string;

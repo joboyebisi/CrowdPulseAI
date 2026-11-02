@@ -22,5 +22,7 @@ export const CLASICO_DEMO_ROOM: MatchRoomSummary = {
   recentBanter: [
     { id: "banter-1", roomId: CLASICO_DEMO_ROOM_ID, authorId: "fan-1", displayName: "Madridista Maya", team: "Real Madrid", message: "One chance is all Mbappé needs. Madrid DNA. 🤍", createdAt: "2026-10-25T20:48:00.000Z" },
     { id: "banter-2", roomId: CLASICO_DEMO_ROOM_ID, authorId: "fan-2", displayName: "Culer Scope", team: "Barcelona", message: "We equalised once. There is still time for one more attack! 🔵🔴", createdAt: "2026-10-25T20:46:00.000Z" },
+    { id: "banter-3", roomId: CLASICO_DEMO_ROOM_ID, authorId: "fan-3", displayName: "Bernabéu Ben", team: "Real Madrid", message: "That counter attack only needed one finish. Cold from Mbappé!", createdAt: "2026-10-25T20:44:00.000Z" },
+    { id: "banter-4", roomId: CLASICO_DEMO_ROOM_ID, authorId: "fan-4", displayName: "Blaugrana Bea", team: "Barcelona", message: "The press is still alive. One goal changes the whole Clásico!", createdAt: "2026-10-25T20:42:00.000Z" },
   ],
 };

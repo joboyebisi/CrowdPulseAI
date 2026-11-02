@@ -254,3 +254,54 @@ Acceptance criteria:
 5. Create and verify a Twitch clip.
 6. Generate grounded copy and approve it.
 7. Show the moment in OBS and open its public page.
+
+## Epic 11 — Creator Live Launchpad
+
+**Story:** As a connected streamer, I want one truthful preflight surface that gets my audience experience ready and hands video broadcasting to Twitch safely.
+
+Acceptance criteria:
+
+- The dashboard reads the authenticated channel's current live/offline state from Twitch.
+- The creator can open Twitch Stream Manager from CrowdPulse.
+- The product explains that OBS or another encoder sends video; CrowdPulse does not claim to start RTMP video through the Twitch API.
+- The app never renders, logs, or stores the broadcaster's stream key.
+- The launch sequence connects Match Room warm-up, Twitch broadcast, EventSub listening, and moment detection.
+- A deterministic live-experience preview is available from every authenticated dashboard, including an empty account.
+
+## Epic 12 — AI Banter Arena
+
+**Story:** As a football creator, I want rival supporters to compete in a visible, moderated banter match so I can turn the best audience personality into live-show material.
+
+Acceptance criteria:
+
+- Every Match Room exposes a clearly labelled Banter Arena.
+- Supporters choose the home team, away team, or neutral position and post short text shouts.
+- The Banter Ref produces an explainable 0–100 score from wit, football relevance, energy, and sportsmanship.
+- Unsafe messages receive a booking, add no team points, and cannot be nominated to stage.
+- Home and away standings show points, shout count, and average score.
+- The host receives a concise next-response cue based on the leading safe shout.
+- The creator can nominate or clear one supporter for a stage handoff.
+- Nomination never claims the supporter has joined the video call; admission remains a creator action in Twitch's guest tooling.
+- The first release uses deterministic transparent scoring so the demo remains reliable. A provider-backed judge may later add nuance behind the same schema, with the deterministic scorer retained as fallback.
+
+## Banter Arena orchestration
+
+1. **Intake:** validate length, reject links/control characters, rate-limit, and attach team identity.
+2. **Banter Ref:** score the four published dimensions and issue a safe/booking verdict.
+3. **Versus engine:** aggregate only safe scores into home and away totals.
+4. **Host coach:** turn the leading shout into a short, time-boxed response cue.
+5. **Stage selector:** rank safe shouts and let the creator nominate a winner.
+6. **Twitch handoff:** open or guide the creator to Twitch's native guest controls; never auto-admit.
+
+## Live Launchpad research decision
+
+Twitch's broadcast documentation requires an encoder and RTMP ingest for video. The API can read stream state and manage supported channel properties, while EventSub can report `stream.online` and `stream.offline`. Therefore CrowdPulse owns preparation, detection, interaction, and orchestration—not video transport. This keeps the product useful without handling the creator's stream key.
+
+## Additional success metrics
+
+- Launchpad-to-live conversion and median preflight time
+- Banter contributors per Match Room and home/away participation balance
+- Percentage of shouts that remain stage-eligible
+- Creator stage-nomination rate and nomination-to-handoff time
+- Banter participants who return during the live broadcast
+- Host-cue usage and creator override rate
