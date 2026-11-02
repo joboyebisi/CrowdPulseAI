@@ -3,12 +3,16 @@ import { ArrowLeft, ExternalLink, Flame, Megaphone, Sparkles, Users, Volume2 } f
 import { notFound } from "next/navigation";
 import { Logo } from "@/components/logo";
 import { findMoment } from "@/lib/store";
+import { getAwsMoment, isAwsBackendConfigured } from "@/lib/aws-backend";
 
 export const dynamic = "force-dynamic";
 
 export default async function MomentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const moment = findMoment(id);
+  let moment = findMoment(id);
+  if (!moment && isAwsBackendConfigured) {
+    try { moment = (await getAwsMoment(id)).moment; } catch { moment = null; }
+  }
   if (!moment || moment.status !== "approved") notFound();
   return (
     <main className="share-page">

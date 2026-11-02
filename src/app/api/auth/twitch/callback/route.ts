@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { encryptSession, OAUTH_STATE_COOKIE, SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
 import { exchangeCode, getCurrentUser, validateToken } from "@/lib/twitch";
+import { registerCreator } from "@/lib/aws-backend";
 
 export const runtime = "nodejs";
 
@@ -29,6 +30,7 @@ export async function GET(request: NextRequest) {
       login: user.login,
       displayName: user.display_name,
     };
+    await registerCreator(session);
     const response = NextResponse.redirect(new URL("/dashboard?connected=1", env.NEXT_PUBLIC_APP_URL));
     response.cookies.delete(OAUTH_STATE_COOKIE);
     response.cookies.set(SESSION_COOKIE, encryptSession(session), sessionCookieOptions);
