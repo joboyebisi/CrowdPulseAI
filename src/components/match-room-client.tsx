@@ -5,6 +5,7 @@ import { CheckCircle2, Flame, MessageCircle, Radio, Send, Sparkles, Trophy, User
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Logo } from "@/components/logo";
 import type { MatchRoomSummary } from "@/lib/types";
+import { CLASICO_DEMO_ROOM_ID } from "@/lib/demo-match";
 
 function countdown(kickoffAt: string) {
   const difference = Math.max(0, new Date(kickoffAt).getTime() - Date.now());
@@ -15,7 +16,7 @@ function countdown(kickoffAt: string) {
   return { days, hours, minutes, seconds };
 }
 
-export function MatchRoomClient({ initialRoom }: { initialRoom: MatchRoomSummary }) {
+export function MatchRoomClient({ initialRoom, demoMode = false }: { initialRoom: MatchRoomSummary; demoMode?: boolean }) {
   const [room, setRoom] = useState(initialRoom);
   const [clock, setClock] = useState(() => countdown(room.kickoffAt));
   const [displayName, setDisplayName] = useState("");
@@ -29,11 +30,13 @@ export function MatchRoomClient({ initialRoom }: { initialRoom: MatchRoomSummary
   const [banterNotice, setBanterNotice] = useState<string | null>(null);
 
   useEffect(() => {
+    if (demoMode) return;
     const timer = window.setInterval(() => setClock(countdown(room.kickoffAt)), 1000);
     return () => window.clearInterval(timer);
-  }, [room.kickoffAt]);
+  }, [demoMode, room.kickoffAt]);
 
   useEffect(() => {
+    if (demoMode) return;
     let active = true;
     async function refreshBanter() {
       const response = await fetch(`/api/match-rooms/${room.id}/banter`, { cache: "no-store" });
@@ -43,7 +46,7 @@ export function MatchRoomClient({ initialRoom }: { initialRoom: MatchRoomSummary
     }
     const timer = window.setInterval(refreshBanter, 5_000);
     return () => { active = false; window.clearInterval(timer); };
-  }, [room.id]);
+  }, [demoMode, room.id]);
 
   const totalPollVotes = useMemo(
     () => Object.values(room.pollCounts).reduce((total, count) => total + count, 0),
@@ -55,6 +58,16 @@ export function MatchRoomClient({ initialRoom }: { initialRoom: MatchRoomSummary
     setBusy(true);
     setNotice(null);
     try {
+      if (demoMode) {
+        setRoom((current) => ({
+          ...current,
+          supporterCount: current.supporterCount + 1,
+          predictionCount: current.predictionCount + (scorePrediction ? 1 : 0),
+          pollCounts: { ...current.pollCounts, [pollChoice]: (current.pollCounts[pollChoice] ?? 0) + 1 },
+        }));
+        setNotice("You're on the sandbox team sheet — no production data was written. ⚽");
+        return;
+      }
       const response = await fetch(`/api/match-rooms/${room.id}/join`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -76,6 +89,13 @@ export function MatchRoomClient({ initialRoom }: { initialRoom: MatchRoomSummary
     setBanterBusy(true);
     setBanterNotice(null);
     try {
+      if (demoMode) {
+        const message = { id: `demo-banter-${Date.now()}`, roomId: CLASICO_DEMO_ROOM_ID, authorId: "demo-supporter", displayName, message: banterMessage, team: banterTeam, createdAt: new Date().toISOString() };
+        setRoom((current) => ({ ...current, banterCount: (current.banterCount ?? 0) + 1, recentBanter: [message, ...(current.recentBanter ?? [])].slice(0, 12) }));
+        setBanterMessage("");
+        setBanterNotice("Your sandbox shout is on the terrace — no production data was written. 📣");
+        return;
+      }
       const response = await fetch(`/api/match-rooms/${room.id}/banter`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -101,7 +121,7 @@ export function MatchRoomClient({ initialRoom }: { initialRoom: MatchRoomSummary
     <main className="match-room-page">
       <nav className="site-nav page-width"><Logo /><Link href="/">What is CrowdPulse?</Link></nav>
       <section className="match-room-hero page-width">
-        <div className="match-room-live"><Radio size={15} /> PRE-MATCH HQ · OPEN</div>
+        <div className="match-room-live"><Radio size={15} /> {demoMode ? "JUDGE SANDBOX · HISTORICAL REPLAY" : "PRE-MATCH HQ · OPEN"}</div>
         <p className="match-host">Hosted by {room.creatorName}</p>
         <h1>{room.title}</h1>
         <div className="fixture-board">

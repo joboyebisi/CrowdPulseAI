@@ -24,9 +24,11 @@ Select **Opening brief**.
 
 > Instead of starting with a cold chat, the creator arrives with a live read on the crowd: 128 supporters, 94 predictions, and Mbappé as the leading call.
 
-Point to the Banter spotlight.
+Select **Open** on the Match Room, then scroll to the Banter Room.
 
-> The new Banter Room turns friendly rivalry into a visible content surface. The best terrace lines return to the creator dashboard, so audience personality becomes part of the show—not a disposable chat scroll.
+> The new Banter Room turns friendly rivalry into a visible content surface. A supporter can post a shout, see it appear immediately, and the best terrace lines return to the creator dashboard—so audience personality becomes part of the show, not a disposable chat scroll.
+
+Post a short line such as **“One chance is all Mbappé needs. Madrid DNA.”**, then return to `/demo`.
 
 ## 0:50-1:35 — The crowd calls the moment
 

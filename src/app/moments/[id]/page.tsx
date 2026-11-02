@@ -10,7 +10,8 @@ export const dynamic = "force-dynamic";
 
 export default async function MomentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  let moment = id === CLASICO_DEMO_MOMENT_ID ? createApprovedClasicoMoment() : findMoment(id);
+  const isClasicoDemo = id === CLASICO_DEMO_MOMENT_ID || id === "0b689b0f-77eb-4815-82b3-eb170f27eafb";
+  let moment = isClasicoDemo ? createApprovedClasicoMoment() : findMoment(id);
   if (!moment && isAwsBackendConfigured) {
     try { moment = (await getAwsMoment(id)).moment; } catch { moment = null; }
   }
