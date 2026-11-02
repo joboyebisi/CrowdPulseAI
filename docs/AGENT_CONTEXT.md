@@ -3,7 +3,7 @@
 ## Current build
 
 - Next.js 16.4.3 and React 19.3.1.
-- Twitch authorization-code login with encrypted HTTP-only session cookies and refresh-token renewal.
+- Twitch authorization-code login with encrypted HTTP-only session cookies, refresh-token renewal, and the chat/bot grants required by the cloud EventSub webhook.
 - Canonical creator entry flow: landing page -> `/login` -> Twitch OAuth -> authenticated `/dashboard`; signed-out dashboard requests return to login.
 - Production OAuth callbacks persist KMS-encrypted creator grants in AWS and register Twitch EventSub webhook subscriptions.
 - Durable creator state, chat events, unique-viewer hype windows, cooldowns, Twitch clip capture, Gemini/fallback moment packaging, review state, and public Moment pages.

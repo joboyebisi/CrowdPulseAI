@@ -12,6 +12,8 @@ Create an application with:
 - OAuth redirect URL: `http://localhost:3000/api/auth/twitch/callback`
 
 CrowdPulse derives this callback from `NEXT_PUBLIC_APP_URL`, so there is only one hostname to configure. For production, register the exact canonical callback URL shown in `docs/DEPLOYMENT.md` in the Twitch Developer Console.
+
+The production cloud-webhook flow requests `user:read:chat`, `user:bot`, `channel:bot`, and `clips:edit`. The two bot grants authorize the app-token EventSub subscription; clip capture still requires the channel to be live with clips enabled.
 - Category: Chat Bot or Website Integration, whichever the console currently offers for the application
 - Client type: confidential, because the Next.js server exchanges the code using a client secret
 

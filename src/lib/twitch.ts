@@ -1,7 +1,7 @@
 import { env, twitchRedirectUri } from "@/lib/env";
 import type { TwitchSession } from "@/lib/types";
 
-export const TWITCH_SCOPES = ["user:read:chat", "clips:edit"] as const;
+export const TWITCH_SCOPES = ["user:read:chat", "user:bot", "channel:bot", "clips:edit"] as const;
 
 type TokenResponse = {
   access_token: string;
