@@ -11,7 +11,7 @@ export default function Home() {
         <div className="nav-actions">
           <a href="#how">Match-day flow</a>
           <Link className="button button-ghost" href="/overlay">OBS overlay</Link>
-          <Link className="button button-primary" href="/dashboard">Open dashboard <ArrowRight size={17} /></Link>
+          <Link className="button button-primary" href="/login"><Twitch size={17} /> Sign in with Twitch</Link>
         </div>
       </nav>
 
@@ -23,7 +23,7 @@ export default function Home() {
             Open a Match Room before kickoff, turn real Twitch chat into creator-approved clips during the chaos, and give every great moment an afterlife.
           </p>
           <div className="hero-actions">
-            <Link className="button button-primary button-large" href="/dashboard">Launch your agent team <ArrowRight size={18} /></Link>
+            <Link className="button button-primary button-large" href="/login"><Twitch size={18} /> Connect Twitch &amp; enter</Link>
             <span className="microcopy"><CheckCircle2 size={16} /> Twitch login · fan-powered · creator approved</span>
           </div>
         </div>
@@ -114,7 +114,7 @@ export default function Home() {
             <Radio size={28} />
             <h2>Your audience already knows what matters.</h2>
           </div>
-          <Link className="button button-light button-large" href="/dashboard">Start CrowdPulse <ArrowRight size={18} /></Link>
+          <Link className="button button-light button-large" href="/login">Sign in with Twitch <ArrowRight size={18} /></Link>
         </div>
       </section>
     </main>

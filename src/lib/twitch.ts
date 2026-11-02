@@ -1,4 +1,4 @@
-import { env } from "@/lib/env";
+import { env, twitchRedirectUri } from "@/lib/env";
 import type { TwitchSession } from "@/lib/types";
 
 export const TWITCH_SCOPES = ["user:read:chat", "clips:edit"] as const;
@@ -20,7 +20,7 @@ export async function exchangeCode(code: string): Promise<TokenResponse> {
     client_secret: env.TWITCH_CLIENT_SECRET,
     code,
     grant_type: "authorization_code",
-    redirect_uri: env.TWITCH_REDIRECT_URI,
+    redirect_uri: twitchRedirectUri,
   });
   const response = await fetch("https://id.twitch.tv/oauth2/token", {
     method: "POST",

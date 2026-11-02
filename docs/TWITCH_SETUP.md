@@ -10,6 +10,8 @@ Create an application with:
 
 - Name: a unique name such as `CrowdPulse AI <your-name>`
 - OAuth redirect URL: `http://localhost:3000/api/auth/twitch/callback`
+
+CrowdPulse derives this callback from `NEXT_PUBLIC_APP_URL`, so there is only one hostname to configure. For production, register the exact canonical callback URL shown in `docs/DEPLOYMENT.md` in the Twitch Developer Console.
 - Category: Chat Bot or Website Integration, whichever the console currently offers for the application
 - Client type: confidential, because the Next.js server exchanges the code using a client secret
 
@@ -22,7 +24,6 @@ Copy `.env.example` to `.env.local` and fill in:
 ```dotenv
 TWITCH_CLIENT_ID=your_client_id
 TWITCH_CLIENT_SECRET=your_client_secret
-TWITCH_REDIRECT_URI=http://localhost:3000/api/auth/twitch/callback
 SESSION_SECRET=a_random_secret_of_at_least_32_characters
 ```
 
@@ -34,7 +35,7 @@ Do not commit `.env.local` or paste the client secret into chat.
 npm run dev
 ```
 
-1. Open `http://localhost:3000/dashboard`.
+1. Open `http://localhost:3000/login`.
 2. Select **Connect with Twitch**.
 3. Review and grant `user:read:chat` and `clips:edit`.
 4. Return to the dashboard and select **Start listener**.

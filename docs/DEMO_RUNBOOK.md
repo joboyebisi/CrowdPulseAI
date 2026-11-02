@@ -36,7 +36,7 @@ Prerequisites:
 Steps:
 
 1. Open `/api/health` and confirm Twitch OAuth and Gemini are configured.
-2. Connect the broadcaster through `/dashboard`.
+2. Sign in with the broadcaster through `/login`; Twitch returns the creator to `/dashboard`.
 3. Start the listener and confirm **Listening live**.
 4. Send ordinary chat plus `!hype`, `!clip`, or `!moment` from unique accounts.
 5. Confirm Signal Scout reaches the threshold once and duplicate viewers do not add votes.

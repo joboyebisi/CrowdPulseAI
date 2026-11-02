@@ -3,7 +3,6 @@ import { z } from "zod";
 const serverSchema = z.object({
   TWITCH_CLIENT_ID: z.string().min(1).optional(),
   TWITCH_CLIENT_SECRET: z.string().min(1).optional(),
-  TWITCH_REDIRECT_URI: z.string().url().default("http://localhost:3000/api/auth/twitch/callback"),
   SESSION_SECRET: z.string().min(32).optional(),
   OPENAI_API_KEY: z.string().min(1).optional(),
   OPENAI_MODEL: z.string().default("gpt-5-mini"),
@@ -20,7 +19,6 @@ const serverSchema = z.object({
 export const env = serverSchema.parse({
   TWITCH_CLIENT_ID: process.env.TWITCH_CLIENT_ID,
   TWITCH_CLIENT_SECRET: process.env.TWITCH_CLIENT_SECRET,
-  TWITCH_REDIRECT_URI: process.env.TWITCH_REDIRECT_URI,
   SESSION_SECRET: process.env.SESSION_SECRET,
   OPENAI_API_KEY: process.env.OPENAI_API_KEY,
   OPENAI_MODEL: process.env.OPENAI_MODEL,
@@ -37,6 +35,11 @@ export const env = serverSchema.parse({
 export const isTwitchConfigured = Boolean(
   env.TWITCH_CLIENT_ID && env.TWITCH_CLIENT_SECRET && env.SESSION_SECRET,
 );
+
+export const twitchRedirectUri = new URL(
+  "/api/auth/twitch/callback",
+  env.NEXT_PUBLIC_APP_URL,
+).toString();
 
 export const agentProvider = env.GEMINI_API_KEY
   ? "Gemini 3.8"

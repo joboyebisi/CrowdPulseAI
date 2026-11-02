@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   const cookieStore = await cookies();
   const expectedState = cookieStore.get(OAUTH_STATE_COOKIE)?.value;
   if (error || !code || !state || state !== expectedState) {
-    return NextResponse.redirect(new URL("/dashboard?error=oauth_failed", env.NEXT_PUBLIC_APP_URL));
+    return NextResponse.redirect(new URL("/login?error=oauth_failed", env.NEXT_PUBLIC_APP_URL));
   }
 
   try {
@@ -36,6 +36,6 @@ export async function GET(request: NextRequest) {
     response.cookies.set(SESSION_COOKIE, encryptSession(session), sessionCookieOptions);
     return response;
   } catch {
-    return NextResponse.redirect(new URL("/dashboard?error=token_exchange_failed", env.NEXT_PUBLIC_APP_URL));
+    return NextResponse.redirect(new URL("/login?error=token_exchange_failed", env.NEXT_PUBLIC_APP_URL));
   }
 }
