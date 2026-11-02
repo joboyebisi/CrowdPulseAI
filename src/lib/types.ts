@@ -75,3 +75,37 @@ export type TwitchSession = {
   login: string;
   displayName: string;
 };
+
+export type MatchRoomStatus = "draft" | "open" | "live" | "closed";
+
+export type MatchRoomResponse = {
+  participantId: string;
+  displayName: string;
+  scorePrediction?: string;
+  pollChoice?: string;
+  checkedIn: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MatchRoom = {
+  id: string;
+  creatorId: string;
+  creatorName: string;
+  title: string;
+  homeTeam: string;
+  awayTeam: string;
+  kickoffAt: string;
+  pollQuestion: string;
+  pollOptions: string[];
+  status: MatchRoomStatus;
+  createdAt: string;
+  updatedAt: string;
+  responses: MatchRoomResponse[];
+};
+
+export type MatchRoomSummary = Omit<MatchRoom, "responses"> & {
+  supporterCount: number;
+  predictionCount: number;
+  pollCounts: Record<string, number>;
+};

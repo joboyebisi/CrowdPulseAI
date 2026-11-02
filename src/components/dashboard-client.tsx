@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import type { Moment, MomentAgentName, RuntimeState } from "@/lib/types";
+import { MatchRoomManager } from "@/components/match-room-manager";
 
 type SessionState = {
   configured: boolean;
@@ -50,7 +51,7 @@ export function DashboardClient() {
       fetch("/api/state", { cache: "no-store" }),
     ]);
     setSession(await sessionResponse.json());
-    setState(await stateResponse.json());
+    if (stateResponse.ok) setState(await stateResponse.json());
   }, []);
 
   useEffect(() => {
@@ -136,6 +137,8 @@ export function DashboardClient() {
             );
           })}
         </section>
+
+        <MatchRoomManager authenticated={Boolean(session?.authenticated)} />
 
         <section className="control-grid">
           <article className="control-card twitch-card">

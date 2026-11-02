@@ -18,13 +18,15 @@ flowchart LR
 flowchart TB
     Viewers --> Web[Vercel Next.js web]
     Creators --> Web
-    Web --> Postgres[(PostgreSQL)]
-    Web --> Redis[(Redis)]
-    Twitch[Twitch EventSub] <--> Worker[Always-on Node worker]
-    Worker --> Postgres
-    Worker --> Redis
+    Web --> API[AWS API Gateway]
+    Twitch[Twitch EventSub webhook] --> API
+    API --> Ingest[Ingest Lambda]
+    Ingest --> Queue[SQS]
+    Queue --> Worker[Moment Lambda]
+    Web --> Dynamo[(DynamoDB)]
+    Ingest --> Dynamo
+    Worker --> Dynamo
     Worker --> Clips[Twitch Clips API]
-    Redis --> Web
 ```
 
 ### Web application
@@ -34,25 +36,23 @@ flowchart TB
 - Viewer participation and public moment pages
 - OBS browser-source routes
 
-### Always-on worker
+### AWS event pipeline
 
-- EventSub WebSocket lifecycle and subscription recovery
+- Signed EventSub webhook verification and replay protection
+- SQS buffering and dead-letter handling
 - Hype-window aggregation and cooldowns
 - Clip creation and readiness polling
 - Moment Agent jobs
 
-### PostgreSQL
+### DynamoDB
 
-- Creators, encrypted Twitch grants, Match Rooms, prompts, responses, candidates, and approved moments
-
-### Redis
-
-- Unique participation sets, rate limits, live hype counters, listener leases, and dashboard updates
+- Creators, encrypted Twitch grants, Match Rooms, prompts, responses, chat events, candidates, and approved moments
+- On-demand capacity, point-in-time recovery, encryption at rest, and TTL for ephemeral records
 
 ## Reliability boundaries
 
 - Access tokens are encrypted at rest, refreshed on 401, and validated at startup and hourly.
-- One listener lease exists per connected broadcaster.
+- Every webhook is HMAC-verified, timestamp-checked, and deduplicated by Twitch message ID.
 - Every EventSub message and participation submission is idempotent.
 - Public pages read durable state; they never depend on a warm function instance.
 - AI failure produces a deterministic draft and never blocks clip review.
@@ -60,7 +60,8 @@ flowchart TB
 ## Deployment recommendation
 
 - **Vercel:** web application and request-driven APIs
-- **Persistent Node host:** EventSub worker
-- **Managed PostgreSQL and Redis:** shared durable state
+- **AWS API Gateway, Lambda, and SQS:** EventSub ingestion and moment jobs
+- **AWS DynamoDB:** shared durable state
+- **AWS Secrets Manager and KMS:** webhook and Twitch grant protection
 
-The repository can also run as one persistent Node deployment until scale justifies separation.
+The local WebSocket path remains useful for development and rehearsal while the webhook pipeline is completed.

@@ -39,6 +39,9 @@ flowchart LR
 
 The working MVP includes:
 
+- Twitch-authenticated creator Match Rooms
+- Public kickoff countdowns, score predictions, polls, and supporter check-ins
+- A creator opening brief generated from pre-match participation
 - Twitch OAuth using the authorization-code flow
 - `channel.chat.message` events over EventSub WebSockets
 - Unique-viewer hype aggregation, sliding window, and cooldown
@@ -81,22 +84,23 @@ Open `http://localhost:3000`. Use the sandbox rehearsal to verify the UI without
 
 ## Architecture
 
-The web experience can run on Vercel, but the Twitch EventSub connection requires durable runtime state. The production design separates the web application from an always-on listener and stores sessions, moments, and crowd activity in shared infrastructure.
+The web experience runs on Vercel while AWS receives Twitch EventSub webhooks and owns durable event processing. Signed callbacks flow through API Gateway and Lambda, SQS absorbs bursts, and DynamoDB stores creator, Match Room, participation, chat, and moment records.
 
 ```mermaid
 flowchart TB
     V[Viewers] --> W[Vercel web app]
     C[Creator dashboard] --> W
-    W --> DB[(PostgreSQL)]
-    W --> R[(Redis)]
-    T[Twitch EventSub] <--> L[Always-on listener]
+    W --> A[API Gateway + Lambda]
+    T[Twitch EventSub] --> A
+    A --> Q[SQS]
+    Q --> L[Moment processor]
+    A --> DB[(DynamoDB)]
     L --> DB
-    L --> R
     L --> API[Twitch Clips API]
     DB --> W
 ```
 
-See [Architecture](docs/ARCHITECTURE.md) for runtime boundaries and deployment guidance.
+See [Architecture](docs/ARCHITECTURE.md) and the [AWS backend guide](docs/AWS_BACKEND.md) for runtime boundaries and deployment guidance.
 
 ## Agent harness
 

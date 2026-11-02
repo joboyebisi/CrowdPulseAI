@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Bot, CheckCircle2, CircleDot, Flame, Layers3, Megaphone, Mic2, Radio, Share2, Twitch, Users } from "lucide-react";
+import { ArrowRight, Bot, CalendarClock, CheckCircle2, CircleDot, Flame, Layers3, Mic2, Radio, Share2, Trophy, Twitch, Users } from "lucide-react";
 import { LandingDemo } from "@/components/landing-demo";
 import { Logo } from "@/components/logo";
 
@@ -9,7 +9,7 @@ export default function Home() {
       <nav className="site-nav page-width">
         <Logo />
         <div className="nav-actions">
-          <a href="#how">How it works</a>
+          <a href="#how">Match-day flow</a>
           <Link className="button button-ghost" href="/overlay">OBS overlay</Link>
           <Link className="button button-primary" href="/dashboard">Open dashboard <ArrowRight size={17} /></Link>
         </div>
@@ -17,14 +17,14 @@ export default function Home() {
 
       <section className="hero page-width">
         <div className="hero-copy">
-          <div className="eyebrow"><CircleDot size={14} /> Built for Twitch communities</div>
-          <h1>Every moment has a crowd.<br /><em>Let the crowd make it legendary.</em></h1>
+          <div className="eyebrow"><CircleDot size={14} /> The match-day control room for Twitch</div>
+          <h1>Warm up the crowd.<br /><em>Capture the roar.</em></h1>
           <p className="hero-lede">
-            CrowdPulse turns real Twitch chat into creator-approved clips, an AI pundit reaction, and platform-ready social drafts—while the moment is still alive.
+            Open a Match Room before kickoff, turn real Twitch chat into creator-approved clips during the chaos, and give every great moment an afterlife.
           </p>
           <div className="hero-actions">
             <Link className="button button-primary button-large" href="/dashboard">Launch your agent team <ArrowRight size={18} /></Link>
-            <span className="microcopy"><CheckCircle2 size={16} /> Real Twitch integration · creator approved</span>
+            <span className="microcopy"><CheckCircle2 size={16} /> Twitch login · fan-powered · creator approved</span>
           </div>
         </div>
         <LandingDemo />
@@ -32,49 +32,49 @@ export default function Home() {
 
       <section className="proof-band">
         <div className="page-width proof-grid">
-          <div><Twitch /><strong>EventSub live chat</strong><span>Implemented</span></div>
+          <div><CalendarClock /><strong>Pre-match Match Rooms</strong><span>New</span></div>
           <div><Flame /><strong>Audience-triggered clips</strong><span>Implemented</span></div>
           <div><Mic2 /><strong>Pundit voice overlay</strong><span>Implemented</span></div>
-          <div><Megaphone /><strong>Social draft package</strong><span>Implemented</span></div>
+          <div><Twitch /><strong>Twitch creator login</strong><span>Implemented</span></div>
         </div>
       </section>
 
       <section className="signal-strip">
         <div className="page-width signal-grid">
-          <span><b>01</b> Chat reacts</span>
+          <span><b>01</b> Fans predict</span>
           <ArrowRight />
-          <span><b>02</b> Agent captures</span>
+          <span><b>02</b> Chat erupts</span>
           <ArrowRight />
-          <span><b>03</b> Creator approves</span>
+          <span><b>03</b> Agents capture</span>
           <ArrowRight />
-          <span><b>04</b> Fans amplify</span>
+          <span><b>04</b> Creator amplifies</span>
         </div>
       </section>
 
       <section className="how page-width" id="how">
         <div className="section-heading">
-          <div className="eyebrow">One exceptional interaction</div>
-          <h2>Collective intelligence,<br />built into the stream.</h2>
-          <p>Not another clipping bot. CrowdPulse lets the community help decide what becomes part of the channel’s history.</p>
+          <div className="eyebrow">Before kickoff · during chaos · after history</div>
+          <h2>One connected<br />match-day experience.</h2>
+          <p>Not another clipping bot. CrowdPulse gives creators a pre-match ritual, a live crowd signal, and a reviewable growth package.</p>
         </div>
         <div className="feature-grid">
           <article>
-            <span><Users /></span>
-            <small>COMMUNITY SIGNAL</small>
-            <h3>The crowd knows first.</h3>
-            <p>Unique <code>!hype</code> votes combine in a live window, turning audience energy into an explainable moment trigger.</p>
+            <span><Trophy /></span>
+            <small>PRE-MATCH HQ</small>
+            <h3>Open the stadium early.</h3>
+            <p>Share a countdown room for score predictions, a bold-call poll, and supporter check-ins before you go live.</p>
           </article>
           <article>
-            <span><Bot /></span>
-            <small>MOMENT AGENT</small>
-            <h3>Context, not invention.</h3>
-            <p>AI writes a title and social-ready caption grounded only in chat and available stream context.</p>
+            <span><Users /></span>
+            <small>LIVE CROWD SIGNAL</small>
+            <h3>The crowd knows first.</h3>
+            <p>Unique <code>!hype</code> votes combine in a live window, turning terrace energy into an explainable moment trigger.</p>
           </article>
           <article>
             <span><Share2 /></span>
-            <small>CREATOR CONTROL</small>
+            <small>FULL-TIME AFTERLIFE</small>
             <h3>Approve, then amplify.</h3>
-            <p>Every candidate waits for creator review before it becomes a branded, shareable CrowdPulse moment.</p>
+            <p>Grounded commentary and platform-ready drafts wait for creator review before the moment leaves the control room.</p>
           </article>
         </div>
       </section>

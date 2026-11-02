@@ -32,6 +32,33 @@ export async function exchangeCode(code: string): Promise<TokenResponse> {
   return response.json() as Promise<TokenResponse>;
 }
 
+export async function refreshTwitchSession(session: TwitchSession): Promise<TwitchSession> {
+  if (!env.TWITCH_CLIENT_ID || !env.TWITCH_CLIENT_SECRET) {
+    throw new Error("Twitch OAuth is not configured");
+  }
+  const body = new URLSearchParams({
+    client_id: env.TWITCH_CLIENT_ID,
+    client_secret: env.TWITCH_CLIENT_SECRET,
+    grant_type: "refresh_token",
+    refresh_token: session.refreshToken,
+  });
+  const response = await fetch("https://id.twitch.tv/oauth2/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body,
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Reconnect Twitch to refresh your creator session");
+  const token = await response.json() as TokenResponse;
+  return {
+    ...session,
+    accessToken: token.access_token,
+    refreshToken: token.refresh_token || session.refreshToken,
+    expiresAt: Date.now() + token.expires_in * 1000,
+    scopes: token.scope,
+  };
+}
+
 export async function validateToken(accessToken: string) {
   const response = await fetch("https://id.twitch.tv/oauth2/validate", {
     headers: { Authorization: `OAuth ${accessToken}` },

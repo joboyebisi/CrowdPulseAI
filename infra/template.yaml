@@ -1,0 +1,113 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: CrowdPulse serverless EventSub ingestion foundation
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Architectures: [arm64]
+    MemorySize: 256
+    Timeout: 10
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref CrowdPulseTable
+
+Resources:
+  CrowdPulseTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+
+  EventSubDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 1209600
+
+  EventSubQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 60
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt EventSubDeadLetterQueue.Arn
+        maxReceiveCount: 4
+
+  EventSubWebhookSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: HMAC secret used to verify Twitch EventSub webhooks
+      GenerateSecretString:
+        PasswordLength: 64
+        ExcludePunctuation: true
+
+  CrowdPulseApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+          - https://crowd-pulse-ai-delta.vercel.app
+        AllowHeaders: [content-type, twitch-eventsub-message-id, twitch-eventsub-message-signature, twitch-eventsub-message-timestamp, twitch-eventsub-message-type]
+        AllowMethods: [POST, OPTIONS]
+
+  EventSubWebhookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/eventsub/
+      Handler: index.handler
+      Environment:
+        Variables:
+          QUEUE_URL: !Ref EventSubQueue
+          EVENTSUB_SECRET: !Sub "{{resolve:secretsmanager:${EventSubWebhookSecret}}}"
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref CrowdPulseTable
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt EventSubQueue.QueueName
+      Events:
+        EventSubWebhook:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref CrowdPulseApi
+            Path: /eventsub
+            Method: POST
+
+  EventSubProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/processor/
+      Handler: index.handler
+      Timeout: 30
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref CrowdPulseTable
+      Events:
+        EventSubQueue:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt EventSubQueue.Arn
+            BatchSize: 10
+            FunctionResponseTypes: [ReportBatchItemFailures]
+
+Outputs:
+  EventSubWebhookUrl:
+    Value: !Sub "https://${CrowdPulseApi}.execute-api.${AWS::Region}.amazonaws.com/eventsub"
+  TableName:
+    Value: !Ref CrowdPulseTable
+  WebhookSecretArn:
+    Value: !Ref EventSubWebhookSecret

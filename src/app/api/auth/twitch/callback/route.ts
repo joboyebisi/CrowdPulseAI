@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
-import { encryptSession, OAUTH_STATE_COOKIE, SESSION_COOKIE } from "@/lib/session";
+import { encryptSession, OAUTH_STATE_COOKIE, SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
 import { exchangeCode, getCurrentUser, validateToken } from "@/lib/twitch";
 
 export const runtime = "nodejs";
@@ -31,13 +31,7 @@ export async function GET(request: NextRequest) {
     };
     const response = NextResponse.redirect(new URL("/dashboard?connected=1", env.NEXT_PUBLIC_APP_URL));
     response.cookies.delete(OAUTH_STATE_COOKIE);
-    response.cookies.set(SESSION_COOKIE, encryptSession(session), {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
+    response.cookies.set(SESSION_COOKIE, encryptSession(session), sessionCookieOptions);
     return response;
   } catch {
     return NextResponse.redirect(new URL("/dashboard?error=token_exchange_failed", env.NEXT_PUBLIC_APP_URL));

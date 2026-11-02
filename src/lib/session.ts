@@ -5,6 +5,14 @@ import { env } from "@/lib/env";
 export const SESSION_COOKIE = "crowdpulse_session";
 export const OAUTH_STATE_COOKIE = "crowdpulse_oauth_state";
 
+export const sessionCookieOptions = {
+  httpOnly: true,
+  sameSite: "lax" as const,
+  secure: process.env.NODE_ENV === "production",
+  maxAge: 60 * 60 * 24 * 7,
+  path: "/",
+};
+
 function key() {
   if (!env.SESSION_SECRET) throw new Error("SESSION_SECRET is not configured");
   return createHash("sha256").update(env.SESSION_SECRET).digest();

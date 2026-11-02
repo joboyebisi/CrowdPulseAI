@@ -1,0 +1,89 @@
+import { randomUUID } from "node:crypto";
+import type { MatchRoom, MatchRoomResponse, MatchRoomSummary } from "@/lib/types";
+
+type MatchRoomInput = Pick<
+  MatchRoom,
+  "creatorId" | "creatorName" | "title" | "homeTeam" | "awayTeam" | "kickoffAt" | "pollQuestion" | "pollOptions"
+>;
+
+type ParticipationInput = Pick<MatchRoomResponse, "participantId" | "displayName" | "scorePrediction" | "pollChoice">;
+
+const globalRooms = globalThis as typeof globalThis & {
+  crowdPulseMatchRooms?: Map<string, MatchRoom>;
+};
+
+const rooms = globalRooms.crowdPulseMatchRooms ?? new Map<string, MatchRoom>();
+globalRooms.crowdPulseMatchRooms = rooms;
+
+function summarize(room: MatchRoom): MatchRoomSummary {
+  const pollCounts = Object.fromEntries(room.pollOptions.map((option) => [option, 0]));
+  for (const response of room.responses) {
+    if (response.pollChoice && response.pollChoice in pollCounts) pollCounts[response.pollChoice] += 1;
+  }
+  const { responses, ...rest } = room;
+  return {
+    ...rest,
+    supporterCount: responses.filter((response) => response.checkedIn).length,
+    predictionCount: responses.filter((response) => Boolean(response.scorePrediction)).length,
+    pollCounts,
+  };
+}
+
+export function createMatchRoom(input: MatchRoomInput): MatchRoomSummary {
+  const now = new Date().toISOString();
+  const room: MatchRoom = {
+    ...input,
+    id: randomUUID(),
+    status: "open",
+    createdAt: now,
+    updatedAt: now,
+    responses: [],
+  };
+  rooms.set(room.id, room);
+  return summarize(room);
+}
+
+export function listCreatorMatchRooms(creatorId: string): MatchRoomSummary[] {
+  return [...rooms.values()]
+    .filter((room) => room.creatorId === creatorId)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .map(summarize);
+}
+
+export function findMatchRoom(id: string): MatchRoomSummary | null {
+  const room = rooms.get(id);
+  return room ? summarize(room) : null;
+}
+
+export function joinMatchRoom(id: string, input: ParticipationInput): MatchRoomSummary | null {
+  const room = rooms.get(id);
+  if (!room || room.status !== "open") return null;
+  if (input.pollChoice && !room.pollOptions.includes(input.pollChoice)) return null;
+
+  const now = new Date().toISOString();
+  const existing = room.responses.find((response) => response.participantId === input.participantId);
+  if (existing) {
+    Object.assign(existing, input, { checkedIn: true, updatedAt: now });
+  } else {
+    room.responses.push({ ...input, checkedIn: true, createdAt: now, updatedAt: now });
+  }
+  room.updatedAt = now;
+  return summarize(room);
+}
+
+export function createOpeningBrief(id: string): string[] {
+  const room = rooms.get(id);
+  if (!room) return [];
+  const summary = summarize(room);
+  const leadingPoll = Object.entries(summary.pollCounts).sort((a, b) => b[1] - a[1])[0];
+  const predictions = room.responses.map((response) => response.scorePrediction).filter(Boolean);
+  return [
+    `${summary.supporterCount} supporters checked in before kickoff.`,
+    leadingPoll && leadingPoll[1] > 0
+      ? `The crowd's leading call: ${leadingPoll[0]} (${leadingPoll[1]} votes).`
+      : "The pre-match poll is still wide open.",
+    predictions.length > 0
+      ? `${predictions.length} score predictions are ready to react to on stream.`
+      : "Ask chat for the first score prediction.",
+  ];
+}
