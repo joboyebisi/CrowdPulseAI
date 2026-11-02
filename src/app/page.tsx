@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Bot, CalendarClock, CheckCircle2, CircleDot, Flame, Layers3, Mic2, Radio, Share2, Trophy, Twitch, Users } from "lucide-react";
+import { ArrowRight, Bot, CalendarClock, CheckCircle2, CircleDot, Flame, Layers3, Mic2, Play, Radio, Share2, Trophy, Twitch, Users } from "lucide-react";
 import { LandingDemo } from "@/components/landing-demo";
 import { Logo } from "@/components/logo";
 
@@ -10,7 +10,7 @@ export default function Home() {
         <Logo />
         <div className="nav-actions">
           <a href="#how">Match-day flow</a>
-          <Link className="button button-ghost" href="/overlay">OBS overlay</Link>
+          <Link className="button button-ghost" href="/demo">Judge demo</Link>
           <Link className="button button-primary" href="/login"><Twitch size={17} /> Sign in with Twitch</Link>
         </div>
       </nav>
@@ -24,6 +24,7 @@ export default function Home() {
           </p>
           <div className="hero-actions">
             <Link className="button button-primary button-large" href="/login"><Twitch size={18} /> Connect Twitch &amp; enter</Link>
+            <Link className="button button-secondary button-large" href="/demo"><Play size={18} /> Try the sandbox</Link>
             <span className="microcopy"><CheckCircle2 size={16} /> Twitch login · fan-powered · creator approved</span>
           </div>
         </div>

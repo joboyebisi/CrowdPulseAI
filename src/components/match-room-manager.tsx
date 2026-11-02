@@ -11,18 +11,36 @@ function defaultKickoff() {
   return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
 }
 
-export function MatchRoomManager({ authenticated }: { authenticated: boolean }) {
-  const [rooms, setRooms] = useState<MatchRoomSummary[]>([]);
+const demoRoom: MatchRoomSummary = {
+  id: "judge-demo-room",
+  creatorId: "judge-demo",
+  creatorName: "CrowdPulse FC",
+  title: "North London Derby Warm-Up",
+  homeTeam: "North Bank XI",
+  awayTeam: "Highbury Athletic",
+  kickoffAt: "2026-11-08T16:30:00.000Z",
+  pollQuestion: "What decides the derby?",
+  pollOptions: ["First goal", "Midfield battle", "Late winner"],
+  status: "open",
+  createdAt: "2026-11-02T12:00:00.000Z",
+  updatedAt: "2026-11-02T12:00:00.000Z",
+  supporterCount: 128,
+  predictionCount: 94,
+  pollCounts: { "First goal": 54, "Midfield battle": 41, "Late winner": 33 },
+};
+
+export function MatchRoomManager({ authenticated, demoMode = false }: { authenticated: boolean; demoMode?: boolean }) {
+  const [rooms, setRooms] = useState<MatchRoomSummary[]>(demoMode ? [demoRoom] : []);
   const [showForm, setShowForm] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [briefs, setBriefs] = useState<Record<string, string[]>>({});
 
   const refresh = useCallback(async () => {
-    if (!authenticated) return;
+    if (!authenticated || demoMode) return;
     const response = await fetch("/api/match-rooms", { cache: "no-store" });
     if (response.ok) setRooms((await response.json()).rooms);
-  }, [authenticated]);
+  }, [authenticated, demoMode]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void refresh(), 0);
@@ -35,6 +53,26 @@ export function MatchRoomManager({ authenticated }: { authenticated: boolean }) 
     setNotice(null);
     const form = new FormData(event.currentTarget);
     try {
+      if (demoMode) {
+        const options = [form.get("pollOne"), form.get("pollTwo"), form.get("pollThree")].filter(Boolean).map(String);
+        const room: MatchRoomSummary = {
+          ...demoRoom,
+          id: `demo-${Date.now()}`,
+          title: String(form.get("title")),
+          homeTeam: String(form.get("homeTeam")),
+          awayTeam: String(form.get("awayTeam")),
+          kickoffAt: new Date(String(form.get("kickoffAt"))).toISOString(),
+          pollQuestion: String(form.get("pollQuestion")),
+          pollOptions: options,
+          supporterCount: 0,
+          predictionCount: 0,
+          pollCounts: Object.fromEntries(options.map((option) => [option, 0])),
+        };
+        setRooms((current) => [room, ...current]);
+        setShowForm(false);
+        setNotice("Demo Match Room opened locally — no production data was written. ⚽");
+        return;
+      }
       const response = await fetch("/api/match-rooms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -60,6 +98,14 @@ export function MatchRoomManager({ authenticated }: { authenticated: boolean }) 
   }
 
   async function loadBrief(roomId: string) {
+    if (demoMode) {
+      setBriefs((current) => ({ ...current, [roomId]: [
+        "128 supporters checked in before kickoff.",
+        "The crowd expects the first goal to decide the derby.",
+        "94 score predictions are ready to react to on stream.",
+      ] }));
+      return;
+    }
     const response = await fetch(`/api/match-rooms/${roomId}/brief`, { cache: "no-store" });
     if (!response.ok) return;
     const payload = await response.json();
@@ -70,7 +116,7 @@ export function MatchRoomManager({ authenticated }: { authenticated: boolean }) 
     <section className="match-manager" id="match-rooms">
       <div className="panel-title">
         <div><p>⚽ BEFORE KICKOFF</p><h2>Match Rooms</h2></div>
-        <button className="button button-primary" disabled={!authenticated} onClick={() => setShowForm((value) => !value)}><Plus size={17} /> New Match Room</button>
+        <button className="button button-primary" disabled={!authenticated} onClick={() => setShowForm((value) => !value)}><Plus size={17} /> {demoMode ? "New demo room" : "New Match Room"}</button>
       </div>
       {!authenticated && <div className="match-manager-empty"><CalendarClock /><div><h3>Connect Twitch to open the stadium.</h3><p>Your channel identity becomes the host of every Match Room.</p></div></div>}
       {notice && <p className="manager-notice">{notice}</p>}
@@ -94,7 +140,7 @@ export function MatchRoomManager({ authenticated }: { authenticated: boolean }) 
           return (
             <article key={room.id}>
               <div><small>{room.status.toUpperCase()} · {new Date(room.kickoffAt).toLocaleString()}</small><h3>{room.homeTeam} <em>vs</em> {room.awayTeam}</h3><p><Users size={15} /> {room.supporterCount} checked in · {room.predictionCount} predictions</p></div>
-              <div className="button-row"><button className="button button-ghost" onClick={() => loadBrief(room.id)}><Sparkles size={16} /> Opening brief</button><button className="icon-button" title="Copy supporter link" onClick={() => navigator.clipboard.writeText(shareUrl)}><Copy size={17} /></button><Link className="button button-secondary" href={`/rooms/${room.id}`}>Open <ArrowUpRight size={16} /></Link></div>
+              <div className="button-row"><button className="button button-ghost" onClick={() => loadBrief(room.id)}><Sparkles size={16} /> Opening brief</button>{!demoMode && <><button className="icon-button" title="Copy supporter link" onClick={() => navigator.clipboard.writeText(shareUrl)}><Copy size={17} /></button><Link className="button button-secondary" href={`/rooms/${room.id}`}>Open <ArrowUpRight size={16} /></Link></>}</div>
               {briefs[room.id] && <div className="opening-brief"><small>🎙️ YOUR OPENING TALKING POINTS</small>{briefs[room.id].map((line) => <p key={line}>{line}</p>)}</div>}
             </article>
           );

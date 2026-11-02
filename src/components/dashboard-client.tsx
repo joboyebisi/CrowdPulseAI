@@ -39,29 +39,38 @@ const pipelineAgents: Array<{
   { name: "growth-producer", label: "04 Growth Producer", description: "Creator-review social drafts", icon: Megaphone },
 ];
 
-export function DashboardClient() {
-  const [session, setSession] = useState<SessionState | null>(null);
+const demoSession: SessionState = {
+  configured: true,
+  agentProvider: "Deterministic sandbox",
+  authenticated: true,
+  user: { id: "judge-demo", login: "crowdpulse_demo", displayName: "CrowdPulse FC" },
+};
+
+export function DashboardClient({ demoMode = false }: { demoMode?: boolean }) {
+  const [session, setSession] = useState<SessionState | null>(demoMode ? demoSession : null);
   const [state, setState] = useState<RuntimeState>(emptyState);
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
+    if (demoMode) return;
     const [sessionResponse, stateResponse] = await Promise.all([
       fetch("/api/auth/session", { cache: "no-store" }),
       fetch("/api/state", { cache: "no-store" }),
     ]);
     setSession(await sessionResponse.json());
     if (stateResponse.ok) setState(await stateResponse.json());
-  }, []);
+  }, [demoMode]);
 
   useEffect(() => {
+    if (demoMode) return;
     const initial = window.setTimeout(() => void refresh(), 0);
     const timer = window.setInterval(refresh, 1500);
     return () => {
       window.clearTimeout(initial);
       window.clearInterval(timer);
     };
-  }, [refresh]);
+  }, [demoMode, refresh]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -81,7 +90,16 @@ export function DashboardClient() {
       const response = await fetch(url, { method });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "Action failed");
-      await refresh();
+      if (demoMode && Array.isArray(payload.moments)) {
+        setState(payload as RuntimeState);
+      } else if (demoMode && payload.id) {
+        setState((current) => ({
+          ...current,
+          moments: current.moments.map((moment) => moment.id === payload.id ? payload as Moment : moment),
+        }));
+      } else {
+        await refresh();
+      }
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Action failed");
     } finally {
@@ -110,13 +128,14 @@ export function DashboardClient() {
       </aside>
 
       <main className="dashboard-main">
+        {demoMode && <div className="sandbox-banner"><Sparkles size={17} /><strong>JUDGE SANDBOX</strong><span>Fixture data only · no Twitch stream or real clip is created</span><Link href="/login">Connect a real channel <ArrowUpRight size={14} /></Link></div>}
         <header className="dashboard-header" id="live">
           <div>
             <p>CROWDPULSE AGENT CONTROL ROOM</p>
             <h1>Turn crowd energy into growth.</h1>
           </div>
           <div className={`connection-pill ${state.connected ? "online" : ""}`}>
-            <i /> {state.connected ? "Listening live" : state.connecting ? "Connecting…" : "Listener offline"}
+            <i /> {demoMode ? "Sandbox ready" : state.connected ? "Listening live" : state.connecting ? "Connecting…" : "Listener offline"}
           </div>
         </header>
 
@@ -138,12 +157,17 @@ export function DashboardClient() {
           })}
         </section>
 
-        <MatchRoomManager authenticated={Boolean(session?.authenticated)} />
+        <MatchRoomManager authenticated={Boolean(session?.authenticated)} demoMode={demoMode} />
 
         <section className="control-grid">
           <article className="control-card twitch-card">
             <div className="card-heading"><span><Twitch size={20} /></span><div><small>TWITCH CHANNEL</small><h2>{session?.authenticated ? session.user?.displayName : "Connect your channel"}</h2></div></div>
-            {!session?.authenticated ? (
+            {demoMode ? (
+              <>
+                <p>A safe replay channel for judges. It exercises the same signal and agent pipeline with labelled fixture data.</p>
+                <div className="scope-row"><Check size={15} /> No credentials <Check size={15} /> No live publishing</div>
+              </>
+            ) : !session?.authenticated ? (
               <>
                 <p>Authorize chat reading and clip creation. CrowdPulse never posts without your approval.</p>
                 <a className={`button button-primary full ${session && !session.configured ? "disabled" : ""}`} href="/api/auth/twitch">
@@ -173,7 +197,7 @@ export function DashboardClient() {
             <div className="meter"><i style={{ width: `${signalStrength}%` }} /></div>
             <div className="metric-row"><span><b>{state.hypeWindowSeconds}s</b> voting window</span><span><b>{state.cooldownSeconds}s</b> cooldown</span></div>
             <button className="button button-secondary full" disabled={busy === "demo"} onClick={() => action("demo", "/api/demo/trigger")}>
-              {busy === "demo" ? <Loader2 className="spin" size={17} /> : <Play size={17} />} Run sandbox rehearsal
+              {busy === "demo" ? <Loader2 className="spin" size={17} /> : <Play size={17} />} {demoMode ? "Replay last-minute surge" : "Run sandbox rehearsal"}
             </button>
           </article>
 

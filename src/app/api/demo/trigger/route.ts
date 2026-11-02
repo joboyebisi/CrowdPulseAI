@@ -5,5 +5,15 @@ export const runtime = "nodejs";
 
 export async function POST() {
   await runDemoSequence();
-  return NextResponse.json(snapshot());
+  const state = snapshot();
+  return NextResponse.json({
+    ...state,
+    connected: false,
+    connecting: false,
+    broadcasterId: "judge-demo",
+    broadcasterName: "CrowdPulse FC",
+    listenerError: undefined,
+    recentChat: state.recentChat.filter((chat) => chat.simulated),
+    moments: state.moments.filter((moment) => moment.simulated),
+  });
 }

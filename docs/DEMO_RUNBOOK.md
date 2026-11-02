@@ -20,7 +20,7 @@ Expected result:
 - Pundit and Growth Producer complete;
 - TikTok, YouTube Shorts, and X drafts are returned.
 
-Open `/dashboard`, select **Run sandbox rehearsal**, and show the execution trace. Every fixture-derived surface remains labelled as sandbox activity.
+Open `/demo`, show the seeded derby Match Room and its opening brief, then select **Replay last-minute surge**. The deterministic five-viewer fixture runs through the same four-agent orchestration and review interface. Every fixture-derived surface remains labelled as sandbox activity, no Twitch clip is created, and no AWS production data is written.
 
 ## Proof 2 — Real Twitch smoke test
 

@@ -4,6 +4,7 @@
 
 - Provider: Vercel through the connected GitHub repository
 - URL: `https://crowd-pulse-ai-delta.vercel.app`
+- Judge sandbox: `https://crowd-pulse-ai-delta.vercel.app/demo`
 - Source branch: `main`
 - Durable integration revision: `c4d49c7`
 - Production bootstrap revision: `5e5c369`
@@ -11,6 +12,8 @@
 - Status: Ready
 
 The production environment has the AWS backend URL and internal bootstrap secret. Its protected sync route transferred the existing server-side Twitch and Gemini configuration into AWS without exposing those values locally.
+
+`crowd-pulse-ai.vercel.app` is not a deployment in the connected Vercel account. Do not use or share it; all OAuth and demo links must use the canonical `crowd-pulse-ai-delta.vercel.app` hostname.
 
 ## AWS backend
 

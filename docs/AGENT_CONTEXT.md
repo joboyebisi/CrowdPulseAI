@@ -10,6 +10,7 @@
 - Four observable moment agents: Signal Scout, Clip Director, Pundit, and Growth Producer.
 - Durable Match Rooms with creator management, a public countdown/check-in experience, score predictions, polls, supporter counts, and opening talking points.
 - Vercel server routes use the AWS API in production and retain deterministic in-memory behavior for local/demo fallback.
+- Public `/demo` judge sandbox: seeded derby Match Room, local room creation, opening brief, deterministic five-viewer hype replay, four-agent trace, and review controls. All fixture-derived output is visibly labelled and isolated from AWS production data.
 
 ## Production deployment - November 2, 2026
 
@@ -44,7 +45,7 @@ Vercel's protected bootstrap route synchronized the existing Twitch and Gemini c
 ## Immediate continuation order
 
 1. Open the production app and choose **Connect Twitch** so the streamer grants consent; this persists the real encrypted creator grant and registers the EventSub subscription.
-2. Send live chat hype from distinct Twitch viewers and verify capture, review, approval, and the public Moment page.
+2. Use `/demo` for the no-stream judge walkthrough, then send live chat hype from distinct Twitch viewers for the separate integration proof.
 3. Complete screenshot-based desktop/mobile visual QA across the landing page, dashboard, Match Rooms, moment review, overlay, and public pages.
 4. Polish any visual issues, then follow `docs/DEMO_RUNBOOK.md` and record the demo.
 5. Create a least-privilege AWS deployment role before routine AWS maintenance; the initial bootstrap used a root login session.
