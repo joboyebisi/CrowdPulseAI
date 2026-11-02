@@ -10,3 +10,9 @@ dist/
 .DS_Store
 coverage/
 *.tsbuildinfo
+
+.vercel/
+.tools/
+infra/.aws-sam/
+.env*
+!.env.example

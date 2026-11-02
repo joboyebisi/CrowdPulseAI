@@ -60,3 +60,16 @@ export async function reviewAwsMoment(id: string, creatorId: string, status: "ap
 export async function getAwsMoment(id: string) {
   return request<{ moment: Moment }>(`/moments/${encodeURIComponent(id)}`);
 }
+
+export async function syncAwsIntegrations() {
+  if (!env.TWITCH_CLIENT_ID || !env.TWITCH_CLIENT_SECRET) throw new Error("Twitch production configuration is missing");
+  return request<{ configured: boolean }>("/internal/integrations", {
+    method: "POST",
+    body: JSON.stringify({
+      TWITCH_CLIENT_ID: env.TWITCH_CLIENT_ID,
+      TWITCH_CLIENT_SECRET: env.TWITCH_CLIENT_SECRET,
+      GEMINI_API_KEY: env.GEMINI_API_KEY ?? "",
+      GEMINI_MODEL: env.GEMINI_MODEL,
+    }),
+  }, true);
+}

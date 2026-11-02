@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 import { KMSClient, EncryptCommand } from "@aws-sdk/client-kms";
-import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
+import { GetSecretValueCommand, PutSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 
 const dynamo = new DynamoDBClient({});
 const kms = new KMSClient({});
@@ -254,6 +254,20 @@ export async function handler(event) {
     const path = event.rawPath;
     const id = event.pathParameters?.id;
     if (path?.startsWith("/internal/") && !internal(event)) return json(401, { error: "Unauthorized" });
+    if (method === "POST" && path === "/internal/integrations") {
+      const input = body(event);
+      if (!input.TWITCH_CLIENT_ID || !input.TWITCH_CLIENT_SECRET) return json(400, { error: "Twitch configuration is required" });
+      await secrets.send(new PutSecretValueCommand({
+        SecretId: process.env.INTEGRATION_SECRET_ARN,
+        SecretString: JSON.stringify({
+          TWITCH_CLIENT_ID: input.TWITCH_CLIENT_ID,
+          TWITCH_CLIENT_SECRET: input.TWITCH_CLIENT_SECRET,
+          GEMINI_API_KEY: input.GEMINI_API_KEY ?? "",
+          GEMINI_MODEL: input.GEMINI_MODEL ?? "gemini-3.8-flash",
+        }),
+      }));
+      return json(200, { configured: true });
+    }
     if (method === "POST" && path === "/internal/creators") return json(200, await upsertCreator(body(event)));
     if (method === "GET" && path === "/internal/rooms") return json(200, { rooms: (await listRooms(event.queryStringParameters?.creatorId)).filter(Boolean) });
     if (method === "POST" && path === "/internal/rooms") return json(201, { room: await createRoom(body(event)) });

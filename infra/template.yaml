@@ -2,6 +2,11 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: CrowdPulse serverless EventSub ingestion foundation
 
+Parameters:
+  EventSubCallbackUrl:
+    Type: String
+    Description: Existing public EventSub webhook callback URL
+
 Globals:
   Function:
     Runtime: nodejs22.x
@@ -173,7 +178,7 @@ Resources:
           INTEGRATION_SECRET_ARN: !Ref IntegrationSecret
           EVENTSUB_SECRET_ARN: !Ref EventSubWebhookSecret
           KMS_KEY_ID: !Ref TwitchGrantKey
-          WEBHOOK_URL: !Sub "https://${CrowdPulseApi}.execute-api.${AWS::Region}.amazonaws.com/eventsub"
+          WEBHOOK_URL: !Ref EventSubCallbackUrl
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref CrowdPulseTable
@@ -182,7 +187,7 @@ Resources:
               Action: [kms:Encrypt, kms:Decrypt]
               Resource: !GetAtt TwitchGrantKey.Arn
             - Effect: Allow
-              Action: secretsmanager:GetSecretValue
+              Action: [secretsmanager:GetSecretValue, secretsmanager:PutSecretValue]
               Resource:
                 - !Ref IntegrationSecret
                 - !Ref EventSubWebhookSecret
@@ -190,6 +195,9 @@ Resources:
         CreatorUpsert:
           Type: HttpApi
           Properties: { ApiId: !Ref CrowdPulseApi, Path: /internal/creators, Method: POST }
+        IntegrationSync:
+          Type: HttpApi
+          Properties: { ApiId: !Ref CrowdPulseApi, Path: /internal/integrations, Method: POST }
         CreatorRoomsList:
           Type: HttpApi
           Properties: { ApiId: !Ref CrowdPulseApi, Path: /internal/rooms, Method: GET }
@@ -198,22 +206,22 @@ Resources:
           Properties: { ApiId: !Ref CrowdPulseApi, Path: /internal/rooms, Method: POST }
         CreatorRoomBrief:
           Type: HttpApi
-          Properties: { ApiId: !Ref CrowdPulseApi, Path: /internal/rooms/{id}/brief, Method: GET }
+          Properties: { ApiId: !Ref CrowdPulseApi, Path: "/internal/rooms/{id}/brief", Method: GET }
         CreatorState:
           Type: HttpApi
           Properties: { ApiId: !Ref CrowdPulseApi, Path: /internal/state, Method: GET }
         CreatorMomentReview:
           Type: HttpApi
-          Properties: { ApiId: !Ref CrowdPulseApi, Path: /internal/moments/{id}/review, Method: POST }
+          Properties: { ApiId: !Ref CrowdPulseApi, Path: "/internal/moments/{id}/review", Method: POST }
         PublicRoomGet:
           Type: HttpApi
-          Properties: { ApiId: !Ref CrowdPulseApi, Path: /rooms/{id}, Method: GET }
+          Properties: { ApiId: !Ref CrowdPulseApi, Path: "/rooms/{id}", Method: GET }
         PublicRoomJoin:
           Type: HttpApi
-          Properties: { ApiId: !Ref CrowdPulseApi, Path: /rooms/{id}/join, Method: POST }
+          Properties: { ApiId: !Ref CrowdPulseApi, Path: "/rooms/{id}/join", Method: POST }
         PublicMomentGet:
           Type: HttpApi
-          Properties: { ApiId: !Ref CrowdPulseApi, Path: /moments/{id}, Method: GET }
+          Properties: { ApiId: !Ref CrowdPulseApi, Path: "/moments/{id}", Method: GET }
 
 Outputs:
   EventSubWebhookUrl:
