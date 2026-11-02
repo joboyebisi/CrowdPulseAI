@@ -48,7 +48,7 @@ export function createApprovedClasicoMoment(): Moment {
   const packageData = createHarnessPackage({ creatorName: "El Clásico Control Room", hypeVotes: 5 });
   return {
     id: CLASICO_DEMO_MOMENT_ID,
-    creatorId: "judge-demo",
+    creatorId: "experience-preview",
     creatorName: "El Clásico Control Room",
     createdAt: completedAt,
     updatedAt: completedAt,
@@ -59,9 +59,10 @@ export function createApprovedClasicoMoment(): Moment {
     chatContext: messages.map(([, userName, text]) => `${userName}: ${text}`),
     aiGenerated: false,
     simulated: true,
+    thumbnailUrl: "/media/demo-streamer-reaction.png",
     agentRuns: [
       { agent: "signal-scout", label: "Signal Scout", status: "completed", completedAt, detail: "Five unique supporters crossed the hype threshold." },
-      { agent: "clip-director", label: "Clip Director", status: "skipped", completedAt, detail: "Sandbox replay: no Twitch clip was requested." },
+      { agent: "clip-director", label: "Clip Director", status: "skipped", completedAt, detail: "Experience preview: no Twitch clip was requested." },
       { agent: "pundit", label: "Pundit", status: "completed", completedAt, detail: "Fixture-grounded Clásico commentary prepared." },
       { agent: "growth-producer", label: "Growth Producer", status: "completed", completedAt, detail: "Three creator-review social drafts prepared." },
     ],

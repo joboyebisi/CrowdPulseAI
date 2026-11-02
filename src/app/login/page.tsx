@@ -39,7 +39,7 @@ export default async function LoginPage({
           <p>Twitch handles your identity. CrowdPulse never receives your Twitch password and never publishes without your approval.</p>
           {error && <div className="login-error">{errorMessages[error] ?? "Twitch sign-in did not complete. Please try again."}</div>}
           <a className="button button-primary button-large full" href="/api/auth/twitch"><Twitch size={18} /> Connect with Twitch</a>
-          <Link className="button button-secondary full login-demo-link" href="/demo"><Sparkles size={17} /> Explore judge sandbox instead</Link>
+          <Link className="button button-secondary full login-demo-link" href="/demo"><Sparkles size={17} /> Explore the live experience first</Link>
           <div className="login-trust"><ShieldCheck size={16} /> Secure OAuth · encrypted session · creator controlled</div>
         </div>
       </section>

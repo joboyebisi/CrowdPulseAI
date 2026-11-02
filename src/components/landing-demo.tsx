@@ -14,14 +14,10 @@ export function LandingDemo() {
         <span className="hype-chip"><Flame size={14} /> HYPE 94%</span>
       </div>
       <div className="video-panel">
-        <div className="stadium-glow" />
-        <div className="streamer-silhouette">
-          <span className="head" />
-          <span className="body" />
-        </div>
+        <div className="generated-media-label"><Sparkles size={13} /> AI-DESIGNED PREVIEW VISUAL</div>
         <div className="video-label">
-          <span>OBS CAMERA</span>
-          <strong>Streamer reacts to an 88th-minute Clásico winner</strong>
+          <span>CREATOR CAMERA</span>
+          <strong>The reaction becomes a crowd-discovered Moment Card</strong>
         </div>
         <div className="chat-burst"><Flame size={16} /> CHAT IS GOING WILD</div>
       </div>

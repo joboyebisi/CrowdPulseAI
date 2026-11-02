@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, CalendarClock, Copy, Flame, Loader2, Plus, Sparkles, Users } from "lucide-react";
+import { ArrowUpRight, CalendarClock, Copy, Flame, Loader2, MessageCircle, Plus, Sparkles, Users } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import type { MatchRoomSummary } from "@/lib/types";
 import { CLASICO_DEMO_ROOM } from "@/lib/demo-match";
@@ -123,7 +123,7 @@ export function MatchRoomManager({ authenticated, demoMode = false }: { authenti
           return (
             <article key={room.id}>
               <div><small>{room.status.toUpperCase()} · {new Date(room.kickoffAt).toLocaleString()}</small><h3>{room.homeTeam} <em>vs</em> {room.awayTeam}</h3><p><Users size={15} /> {room.supporterCount} checked in · {room.predictionCount} predictions · {room.banterCount ?? 0} banter posts</p>{room.recentBanter?.[0] && <blockquote>“{room.recentBanter[0].message}” <b>— {room.recentBanter[0].displayName}</b></blockquote>}</div>
-              <div className="button-row"><button className="button button-ghost" onClick={() => loadBrief(room.id)}><Sparkles size={16} /> Opening brief</button>{!demoMode && <button className="icon-button" title="Copy supporter link" onClick={() => navigator.clipboard.writeText(shareUrl)}><Copy size={17} /></button>}{(!demoMode || room.id === CLASICO_DEMO_ROOM.id) && <Link className="button button-secondary" href={`/rooms/${room.id}`}>Open <ArrowUpRight size={16} /></Link>}</div>
+              <div className="button-row"><button className="button button-ghost" onClick={() => loadBrief(room.id)}><Sparkles size={16} /> Opening brief</button>{!demoMode && <button className="icon-button" title="Copy supporter link" onClick={() => navigator.clipboard.writeText(shareUrl)}><Copy size={17} /></button>}{(!demoMode || room.id === CLASICO_DEMO_ROOM.id) && <Link className="button button-secondary" href={`/rooms/${room.id}#banter-room`}><MessageCircle size={16} /> Open Banter Room <ArrowUpRight size={16} /></Link>}</div>
               {briefs[room.id] && <div className="opening-brief"><small>🎙️ YOUR OPENING TALKING POINTS</small>{briefs[room.id].map((line) => <p key={line}>{line}</p>)}</div>}
             </article>
           );

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand, TransactWriteItemsCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 import { KMSClient, EncryptCommand } from "@aws-sdk/client-kms";
 import { GetSecretValueCommand, PutSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 
@@ -138,7 +138,33 @@ async function addBanter(id, input) {
     message: string(input.message), ...(input.team ? { team: string(input.team) } : {}), createdAt: string(now),
     expiresAt: number(Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30),
   };
-  await dynamo.send(new PutItemCommand({ TableName: process.env.TABLE_NAME, Item: item }));
+  const nowMs = Date.now();
+  try {
+    await dynamo.send(new TransactWriteItemsCommand({
+      TransactItems: [
+        {
+          Put: {
+            TableName: process.env.TABLE_NAME,
+            Item: {
+              pk: { S: `ROOM#${id}` }, sk: { S: `BANTER_RATE#${input.authorId}` },
+              nextAllowedAtMs: number(nowMs + 10_000),
+              expiresAt: number(Math.floor(nowMs / 1000) + 60 * 60),
+            },
+            ConditionExpression: "attribute_not_exists(pk) OR nextAllowedAtMs < :now",
+            ExpressionAttributeValues: { ":now": number(nowMs) },
+          },
+        },
+        { Put: { TableName: process.env.TABLE_NAME, Item: item } },
+      ],
+    }));
+  } catch (error) {
+    if (error?.name === "TransactionCanceledException") {
+      const limited = new Error("Terrace cooldown: slow down and try again in a few seconds.");
+      limited.code = "BANTER_RATE_LIMITED";
+      throw limited;
+    }
+    throw error;
+  }
   return banterFromItem(item);
 }
 
@@ -323,7 +349,7 @@ export async function handler(event) {
     }
     if (method === "POST" && path?.endsWith("/banter")) {
       const input = body(event);
-      if (!input.displayName || !input.message || input.displayName.length > 30 || input.message.length > 180) return json(400, { error: "Invalid banter message" });
+      if (!input.authorId || !input.displayName || !input.message || input.displayName.length > 30 || input.message.length > 180 || /(?:https?:\/\/|www\.)/i.test(input.message) || /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(input.message)) return json(400, { error: "Invalid banter message" });
       const message = await addBanter(id, input);
       return message ? json(201, { message }) : json(404, { error: "Match Room not found" });
     }
@@ -341,6 +367,7 @@ export async function handler(event) {
     }
     return json(404, { error: "Not found" });
   } catch (error) {
+    if (error?.code === "BANTER_RATE_LIMITED") return json(429, { error: error.message });
     console.error("CrowdPulse API error", error);
     return json(500, { error: "CrowdPulse backend request failed" });
   }

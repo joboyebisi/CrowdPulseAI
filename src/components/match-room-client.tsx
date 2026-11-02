@@ -65,7 +65,7 @@ export function MatchRoomClient({ initialRoom, demoMode = false }: { initialRoom
           predictionCount: current.predictionCount + (scorePrediction ? 1 : 0),
           pollCounts: { ...current.pollCounts, [pollChoice]: (current.pollCounts[pollChoice] ?? 0) + 1 },
         }));
-        setNotice("You're on the sandbox team sheet — no production data was written. ⚽");
+        setNotice("You're on the preview team sheet — no production data was written. ⚽");
         return;
       }
       const response = await fetch(`/api/match-rooms/${room.id}/join`, {
@@ -93,7 +93,7 @@ export function MatchRoomClient({ initialRoom, demoMode = false }: { initialRoom
         const message = { id: `demo-banter-${Date.now()}`, roomId: CLASICO_DEMO_ROOM_ID, authorId: "demo-supporter", displayName, message: banterMessage, team: banterTeam, createdAt: new Date().toISOString() };
         setRoom((current) => ({ ...current, banterCount: (current.banterCount ?? 0) + 1, recentBanter: [message, ...(current.recentBanter ?? [])].slice(0, 12) }));
         setBanterMessage("");
-        setBanterNotice("Your sandbox shout is on the terrace — no production data was written. 📣");
+        setBanterNotice("Your preview shout is on the terrace — no production data was written. 📣");
         return;
       }
       const response = await fetch(`/api/match-rooms/${room.id}/banter`, {
@@ -121,7 +121,7 @@ export function MatchRoomClient({ initialRoom, demoMode = false }: { initialRoom
     <main className="match-room-page">
       <nav className="site-nav page-width"><Logo /><Link href="/">What is CrowdPulse?</Link></nav>
       <section className="match-room-hero page-width">
-        <div className="match-room-live"><Radio size={15} /> {demoMode ? "JUDGE SANDBOX · HISTORICAL REPLAY" : "PRE-MATCH HQ · OPEN"}</div>
+        <div className="match-room-live"><Radio size={15} /> {demoMode ? "LIVE EXPERIENCE PREVIEW · HISTORICAL REPLAY" : "PRE-MATCH HQ · OPEN"}</div>
         <p className="match-host">Hosted by {room.creatorName}</p>
         <h1>{room.title}</h1>
         <div className="fixture-board">
@@ -131,6 +131,7 @@ export function MatchRoomClient({ initialRoom, demoMode = false }: { initialRoom
           {Object.entries(clock).map(([label, value]) => <div key={label}><b>{String(value).padStart(2, "0")}</b><small>{label}</small></div>)}
         </div>
         <div className="room-crowd"><Users size={18} /><b>{room.supporterCount}</b> supporters checked in <Flame size={18} /><b>{room.predictionCount}</b> predictions</div>
+        <a className="button button-secondary room-banter-jump" href="#banter-room"><MessageCircle size={17} /> Join the Banter Room · {room.banterCount ?? 0} shouts</a>
       </section>
 
       <section className="match-room-grid page-width">
@@ -165,7 +166,7 @@ export function MatchRoomClient({ initialRoom, demoMode = false }: { initialRoom
         </aside>
       </section>
 
-      <section className="banter-room page-width">
+      <section className="banter-room page-width" id="banter-room">
         <div className="banter-heading"><div><small>📣 THE DIGITAL TERRACE</small><h2>Banter Room</h2><p>Match-day takes, rival replies, and the lines worth putting on stream.</p></div><span>{room.banterCount ?? 0} shouts</span></div>
         <div className="banter-layout">
           <form className="banter-form" onSubmit={submitBanter}>

@@ -17,6 +17,8 @@ export const joinMatchRoomSchema = z.object({
 
 export const banterMessageSchema = z.object({
   displayName: z.string().trim().min(1).max(30),
-  message: z.string().trim().min(2).max(180),
+  message: z.string().trim().min(2).max(180)
+    .refine((value) => !/(?:https?:\/\/|www\.)/i.test(value), "Links are not allowed in the Banter Room")
+    .refine((value) => !/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(value), "Unsupported characters"),
   team: z.string().trim().max(40).optional(),
 });

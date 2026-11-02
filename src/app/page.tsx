@@ -10,7 +10,7 @@ export default function Home() {
         <Logo />
         <div className="nav-actions">
           <a href="#how">Match-day flow</a>
-          <Link className="button button-ghost" href="/demo">Judge demo</Link>
+          <Link className="button button-ghost" href="/demo">Live experience</Link>
           <Link className="button button-primary" href="/login"><Twitch size={17} /> Sign in with Twitch</Link>
         </div>
       </nav>
@@ -24,7 +24,7 @@ export default function Home() {
           </p>
           <div className="hero-actions">
             <Link className="button button-primary button-large" href="/login"><Twitch size={18} /> Connect Twitch &amp; enter</Link>
-            <Link className="button button-secondary button-large" href="/demo"><Play size={18} /> Try the sandbox</Link>
+            <Link className="button button-secondary button-large" href="/demo"><Play size={18} /> Explore the live experience</Link>
             <span className="microcopy"><CheckCircle2 size={16} /> Twitch login · fan-powered · creator approved</span>
           </div>
         </div>
@@ -34,9 +34,9 @@ export default function Home() {
       <section className="proof-band">
         <div className="page-width proof-grid">
           <div><CalendarClock /><strong>Pre-match Match Rooms</strong><span>New</span></div>
-          <div><Flame /><strong>Audience-triggered clips</strong><span>Implemented</span></div>
+          <div><Flame /><strong>Audience-triggered clips</strong><span>Live ready</span></div>
           <div><Mic2 /><strong>Pundit voice overlay</strong><span>Implemented</span></div>
-          <div><Twitch /><strong>Twitch creator login</strong><span>Implemented</span></div>
+          <div><Twitch /><strong>Twitch creator login</strong><span>Live ready</span></div>
         </div>
       </section>
 
@@ -63,7 +63,7 @@ export default function Home() {
             <span><Trophy /></span>
             <small>PRE-MATCH HQ</small>
             <h3>Open the stadium early.</h3>
-            <p>Share a countdown room for score predictions, a bold-call poll, and supporter check-ins before you go live.</p>
+            <p>Share a countdown room for score predictions, a bold-call poll, supporter check-ins, and a live Banter Room before you go live.</p>
           </article>
           <article>
             <span><Users /></span>
@@ -75,7 +75,7 @@ export default function Home() {
             <span><Share2 /></span>
             <small>FULL-TIME AFTERLIFE</small>
             <h3>Approve, then amplify.</h3>
-            <p>Grounded commentary and platform-ready drafts wait for creator review before the moment leaves the control room.</p>
+            <p>Grounded commentary, a Twitch clip, and a downloadable social card wait for creator review before the moment leaves the control room.</p>
           </article>
         </div>
       </section>

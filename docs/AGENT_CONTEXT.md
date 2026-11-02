@@ -10,10 +10,14 @@
 - Four observable moment agents: Signal Scout, Clip Director, Pundit, and Growth Producer.
 - Durable Match Rooms with creator management, a public countdown/check-in experience, score predictions, polls, supporter counts, and opening talking points.
 - Vercel server routes use the AWS API in production and retain deterministic in-memory behavior for local/demo fallback.
-- Public `/demo` judge sandbox themed around Barcelona 1–2 Real Madrid on 25 October 2026: seeded Clásico Match Room, local room creation, opening brief, 88th-minute winner replay, four-agent trace, and review controls. The result is historical; supporter/chat data is visibly fictional and isolated from AWS production data.
+- Public `/demo` live experience preview themed around Barcelona 1–2 Real Madrid on 25 October 2026: seeded Clásico Match Room, local room creation, opening brief, 88th-minute winner replay, four-agent trace, and review controls. The result is historical; supporter/chat data is visibly fictional and isolated from AWS production data.
 - Match Rooms include a durable Banter Room: public supporter posts, five-second audience refresh, team colours, creator-dashboard count, and latest-shout visibility. Messages are escaped by React, length-limited, and expire from DynamoDB after 30 days.
 - The football pulse uses Sportmonks live-score polling every 30 seconds when `SPORTMONKS_API_TOKEN` is configured; otherwise it explicitly displays the verified historical replay.
 - The Clásico demo Moment uses the stable ID `clasico-2026-mbappe-88`, so approve/open works across stateless Vercel instances.
+- Approved real moments embed the official Twitch clip and expose a generated 1200×630 share card, download action, device share action, dynamic Open Graph metadata, and Twitch-source link.
+- The live experience preview uses `public/media/demo-streamer-reaction.png`, an AI-designed fictional creator reaction with visible provenance and no match footage or real-person likeness.
+- Public Banter Room writes reject links/control characters and use a durable DynamoDB ten-second per-supporter cooldown.
+- Twitch Developer Console now registers the canonical production callback `https://crowd-pulse-ai-delta.vercel.app/api/auth/twitch/callback`.
 
 ## Production deployment - November 2, 2026
 

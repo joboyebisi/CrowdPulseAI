@@ -4,7 +4,7 @@ export const CLASICO_DEMO_ROOM_ID = "clasico-2026-crowd-room";
 
 export const CLASICO_DEMO_ROOM: MatchRoomSummary = {
   id: CLASICO_DEMO_ROOM_ID,
-  creatorId: "judge-demo",
+  creatorId: "experience-preview",
   creatorName: "El Clásico Control Room",
   title: "Barcelona 1–2 Real Madrid · Crowd Replay",
   homeTeam: "Barcelona",

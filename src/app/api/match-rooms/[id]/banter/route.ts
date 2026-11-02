@@ -20,11 +20,17 @@ export async function GET(_: Request, context: { params: Promise<{ id: string }>
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
   const parsed = banterMessageSchema.safeParse(await request.json());
-  if (!parsed.success) return NextResponse.json({ error: "Keep banter friendly and under 180 characters" }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Keep banter friendly and under 180 characters" }, { status: 400 });
   const cookieStore = await cookies();
   const authorId = cookieStore.get(PARTICIPANT_COOKIE)?.value ?? randomUUID();
   const input = { authorId, ...parsed.data };
-  const message = isAwsBackendConfigured ? (await addAwsBanter(id, input)).message : addBanter(id, input);
+  let message;
+  try {
+    message = isAwsBackendConfigured ? (await addAwsBanter(id, input)).message : addBanter(id, input);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : "Unable to post banter";
+    return NextResponse.json({ error: detail }, { status: detail.includes("slow down") ? 429 : 502 });
+  }
   if (!message) return NextResponse.json({ error: "Match Room not found" }, { status: 404 });
   const response = NextResponse.json({ message }, { status: 201 });
   response.cookies.set(PARTICIPANT_COOKIE, authorId, {

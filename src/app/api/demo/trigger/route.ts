@@ -10,7 +10,7 @@ export async function POST() {
     ...state,
     connected: false,
     connecting: false,
-    broadcasterId: "judge-demo",
+    broadcasterId: "experience-preview",
     broadcasterName: "El Clásico Control Room",
     listenerError: undefined,
     recentChat: state.recentChat.filter((chat) => chat.simulated),

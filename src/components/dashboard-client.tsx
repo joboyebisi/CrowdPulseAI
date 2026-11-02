@@ -3,7 +3,7 @@
 import Link from "next/link";
 import {
   Activity, ArrowUpRight, Bot, Check, CircleAlert, Copy, Flame, Loader2,
-  LogOut, Megaphone, Play, Radio, Sparkles, Square, Twitch, Volume2, X,
+  LogOut, Megaphone, MessageCircle, Play, Radio, Sparkles, Square, Twitch, Volume2, X,
 } from "lucide-react";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import type { Moment, MomentAgentName, RuntimeState } from "@/lib/types";
@@ -42,9 +42,9 @@ const pipelineAgents: Array<{
 
 const demoSession: SessionState = {
   configured: true,
-  agentProvider: "Deterministic sandbox",
+  agentProvider: "Deterministic experience preview",
   authenticated: true,
-  user: { id: "judge-demo", login: "clasico_control", displayName: "El Clásico Control Room" },
+  user: { id: "experience-preview", login: "clasico_control", displayName: "El Clásico Control Room" },
 };
 
 export function DashboardClient({ demoMode = false }: { demoMode?: boolean }) {
@@ -119,6 +119,7 @@ export function DashboardClient({ demoMode = false }: { demoMode?: boolean }) {
         <div className="dash-brand"><span className="mini-mark">▥</span> CROWD<span>PULSE</span></div>
         <nav>
           <a className="active" href="#live"><Activity size={18} /> Live control</a>
+          <a href="#match-rooms"><MessageCircle size={18} /> Match &amp; banter</a>
           <a href="#moments"><Sparkles size={18} /> Moments <b>{pending.length}</b></a>
           <Link href="/overlay"><Radio size={18} /> OBS overlay <ArrowUpRight size={15} /></Link>
         </nav>
@@ -129,14 +130,14 @@ export function DashboardClient({ demoMode = false }: { demoMode?: boolean }) {
       </aside>
 
       <main className="dashboard-main">
-        {demoMode && <div className="sandbox-banner"><Sparkles size={17} /><strong>JUDGE SANDBOX</strong><span>Historical result · fictional crowd data · no real Twitch clip</span><Link href="/login">Connect a real channel <ArrowUpRight size={14} /></Link></div>}
+        {demoMode && <div className="sandbox-banner"><Sparkles size={17} /><strong>LIVE EXPERIENCE PREVIEW</strong><span>Walk through the creator flow with a labelled historical replay and fictional crowd activity.</span><Link href="/login">Connect a real channel <ArrowUpRight size={14} /></Link></div>}
         <header className="dashboard-header" id="live">
           <div>
             <p>CROWDPULSE AGENT CONTROL ROOM</p>
             <h1>Turn crowd energy into growth.</h1>
           </div>
           <div className={`connection-pill ${state.connected ? "online" : ""}`}>
-            <i /> {demoMode ? "Sandbox ready" : state.connected ? "Listening live" : state.connecting ? "Connecting…" : "Listener offline"}
+            <i /> {demoMode ? "Preview ready" : state.connected ? "Listening live" : state.connecting ? "Connecting…" : "Listener offline"}
           </div>
         </header>
 
@@ -167,8 +168,8 @@ export function DashboardClient({ demoMode = false }: { demoMode?: boolean }) {
             <div className="card-heading"><span><Twitch size={20} /></span><div><small>TWITCH CHANNEL</small><h2>{session?.authenticated ? session.user?.displayName : "Connect your channel"}</h2></div></div>
             {demoMode ? (
               <>
-                <p>A safe replay channel for judges. It exercises the same signal and agent pipeline with labelled fixture data.</p>
-                <div className="scope-row"><Check size={15} /> No credentials <Check size={15} /> No live publishing</div>
+                <p>A guided match-day replay showing how creators move from crowd energy to an approved, shareable moment.</p>
+                <div className="scope-row"><Check size={15} /> No credentials needed <Check size={15} /> Clearly labelled preview</div>
               </>
             ) : !session?.authenticated ? (
               <>
@@ -200,7 +201,7 @@ export function DashboardClient({ demoMode = false }: { demoMode?: boolean }) {
             <div className="meter"><i style={{ width: `${signalStrength}%` }} /></div>
             <div className="metric-row"><span><b>{state.hypeWindowSeconds}s</b> voting window</span><span><b>{state.cooldownSeconds}s</b> cooldown</span></div>
             <button className="button button-secondary full" disabled={busy === "demo"} onClick={() => action("demo", "/api/demo/trigger")}>
-              {busy === "demo" ? <Loader2 className="spin" size={17} /> : <Play size={17} />} {demoMode ? "Replay the 88th-minute winner" : "Run sandbox rehearsal"}
+              {busy === "demo" ? <Loader2 className="spin" size={17} /> : <Play size={17} />} {demoMode ? "Replay the 88th-minute winner" : "Run a private rehearsal"}
             </button>
           </article>
 
@@ -282,7 +283,7 @@ function ApprovedMoment({ moment }: { moment: Moment }) {
   const [copied, setCopied] = useState(false);
   return (
     <article className="approved-card">
-      <div><small>{moment.simulated ? "DEMO MOMENT" : "TWITCH MOMENT"}</small><h3>{moment.title}</h3><p>{moment.hypeVotes} fans discovered this</p></div>
+      <div><small>{moment.simulated ? "EXPERIENCE PREVIEW" : "TWITCH MOMENT"}</small><h3>{moment.title}</h3><p>{moment.hypeVotes} fans discovered this · social card ready</p></div>
       <div className="button-row">
         <button className="icon-button" title="Copy share link" onClick={async () => { await navigator.clipboard.writeText(shareUrl); setCopied(true); }}>
           {copied ? <Check size={18} /> : <Copy size={18} />}

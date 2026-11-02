@@ -4,7 +4,7 @@
 
 - Provider: Vercel through the connected GitHub repository
 - URL: `https://crowd-pulse-ai-delta.vercel.app`
-- Judge sandbox: `https://crowd-pulse-ai-delta.vercel.app/demo`
+- Live experience preview: `https://crowd-pulse-ai-delta.vercel.app/demo`
 - Source branch: `main`
 - Durable integration revision: `c4d49c7`
 - Production bootstrap revision: `5e5c369`
