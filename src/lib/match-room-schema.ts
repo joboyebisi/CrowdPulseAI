@@ -7,6 +7,8 @@ export const createMatchRoomSchema = z.object({
   kickoffAt: z.string().datetime(),
   pollQuestion: z.string().trim().min(3).max(120),
   pollOptions: z.array(z.string().trim().min(1).max(50)).min(2).max(4),
+  arenaTitle: z.string().trim().min(3).max(80).optional(),
+  arenaPhase: z.enum(["prematch", "live", "postmatch"]).optional(),
 });
 
 export const joinMatchRoomSchema = z.object({
@@ -21,4 +23,9 @@ export const banterMessageSchema = z.object({
     .refine((value) => !/(?:https?:\/\/|www\.)/i.test(value), "Links are not allowed in the Banter Room")
     .refine((value) => !/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(value), "Unsupported characters"),
   team: z.string().trim().max(40).optional(),
+  imageUrl: z.string().url().max(500).optional(),
 });
+
+export const banterReactionSchema = z.object({ reaction: z.enum(["fire", "laugh", "clap"]) });
+export const arenaPhaseSchema = z.object({ arenaPhase: z.enum(["prematch", "live", "postmatch"]) });
+export const banterSpotlightSchema = z.object({ spotlight: z.enum(["live", "postmatch"]).nullable() });

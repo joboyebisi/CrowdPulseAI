@@ -3,6 +3,7 @@ import { findMatchRoom } from "@/lib/match-room-store";
 import { MatchRoomClient } from "@/components/match-room-client";
 import { getAwsMatchRoom, isAwsBackendConfigured } from "@/lib/aws-backend";
 import { CLASICO_DEMO_ROOM, CLASICO_DEMO_ROOM_ID } from "@/lib/demo-match";
+import { currentTwitchSession } from "@/lib/current-session";
 
 export const dynamic = "force-dynamic";
 
@@ -15,5 +16,6 @@ export default async function MatchRoomPage({ params }: { params: Promise<{ id: 
     room = null;
   }
   if (!room) notFound();
-  return <MatchRoomClient initialRoom={room} demoMode={id === CLASICO_DEMO_ROOM_ID} />;
+  const session = await currentTwitchSession();
+  return <MatchRoomClient initialRoom={room} demoMode={id === CLASICO_DEMO_ROOM_ID} creatorMode={id === CLASICO_DEMO_ROOM_ID || session?.userId === room.creatorId} />;
 }

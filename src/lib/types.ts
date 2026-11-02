@@ -95,8 +95,14 @@ export type BanterMessage = {
   displayName: string;
   message: string;
   team?: string;
+  imageUrl?: string;
+  reactionCounts?: BanterReactionCounts;
+  spotlight?: "live" | "postmatch";
   createdAt: string;
 };
+
+export type BanterReaction = "fire" | "laugh" | "clap";
+export type BanterReactionCounts = Record<BanterReaction, number>;
 
 export type BanterScore = {
   total: number;
@@ -125,6 +131,8 @@ export type MatchRoom = {
   kickoffAt: string;
   pollQuestion: string;
   pollOptions: string[];
+  arenaTitle?: string;
+  arenaPhase?: "prematch" | "live" | "postmatch";
   status: MatchRoomStatus;
   createdAt: string;
   updatedAt: string;

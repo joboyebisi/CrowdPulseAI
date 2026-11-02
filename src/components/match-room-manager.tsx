@@ -47,6 +47,8 @@ export function MatchRoomManager({ authenticated, demoMode = false }: { authenti
           kickoffAt: new Date(String(form.get("kickoffAt"))).toISOString(),
           pollQuestion: String(form.get("pollQuestion")),
           pollOptions: options,
+          arenaTitle: String(form.get("arenaTitle")),
+          arenaPhase: "prematch",
           supporterCount: 0,
           predictionCount: 0,
           pollCounts: Object.fromEntries(options.map((option) => [option, 0])),
@@ -66,6 +68,8 @@ export function MatchRoomManager({ authenticated, demoMode = false }: { authenti
           kickoffAt: new Date(String(form.get("kickoffAt"))).toISOString(),
           pollQuestion: form.get("pollQuestion"),
           pollOptions: [form.get("pollOne"), form.get("pollTwo"), form.get("pollThree")].filter(Boolean),
+          arenaTitle: form.get("arenaTitle"),
+          arenaPhase: "prematch",
         }),
       });
       const payload = await response.json();
@@ -110,6 +114,7 @@ export function MatchRoomManager({ authenticated, demoMode = false }: { authenti
           <label>Away team<input name="awayTeam" required placeholder="Away team" /></label>
           <label>Kickoff<input name="kickoffAt" type="datetime-local" required defaultValue={defaultKickoff()} /></label>
           <label className="wide">Crowd question<input name="pollQuestion" required defaultValue="What's your bold call for the match?" /></label>
+          <label className="wide">Arena name<input name="arenaTitle" required defaultValue="The Rivalry Arena" maxLength={80} /></label>
           <label>Poll option 1<input name="pollOne" required defaultValue="Home win" /></label>
           <label>Poll option 2<input name="pollTwo" required defaultValue="Away win" /></label>
           <label>Poll option 3<input name="pollThree" defaultValue="Draw" /></label>

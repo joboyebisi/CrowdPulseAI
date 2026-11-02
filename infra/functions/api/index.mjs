@@ -2,10 +2,12 @@ import { randomUUID } from "node:crypto";
 import { DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand, TransactWriteItemsCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 import { KMSClient, EncryptCommand } from "@aws-sdk/client-kms";
 import { GetSecretValueCommand, PutSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const dynamo = new DynamoDBClient({});
 const kms = new KMSClient({});
 const secrets = new SecretsManagerClient({});
+const s3 = new S3Client({});
 
 function json(statusCode, body) {
   return { statusCode, headers: { "content-type": "application/json", "cache-control": "no-store" }, body: JSON.stringify(body) };
@@ -30,6 +32,8 @@ function banterFromItem(item) {
   return {
     id: readString(item, "id"), roomId: readString(item, "roomId"), authorId: readString(item, "authorId"),
     displayName: readString(item, "displayName"), message: readString(item, "message"), team: readString(item, "team"),
+    imageUrl: readString(item, "imageUrl"), spotlight: readString(item, "spotlight"),
+    reactionCounts: { fire: Number(item?.reactionFire?.N ?? 0), laugh: Number(item?.reactionLaugh?.N ?? 0), clap: Number(item?.reactionClap?.N ?? 0) },
     createdAt: readString(item, "createdAt"),
   };
 }
@@ -51,6 +55,8 @@ function roomFromItem(item, responses = [], banter = []) {
     kickoffAt: readString(item, "kickoffAt"),
     pollQuestion: readString(item, "pollQuestion"),
     pollOptions,
+    arenaTitle: readString(item, "arenaTitle"),
+    arenaPhase: readString(item, "arenaPhase") ?? "prematch",
     status: readString(item, "status"),
     createdAt: readString(item, "createdAt"),
     updatedAt: readString(item, "updatedAt"),
@@ -87,6 +93,7 @@ async function createRoom(input) {
     id: string(id), creatorId: string(input.creatorId), creatorName: string(input.creatorName), title: string(input.title),
     homeTeam: string(input.homeTeam), awayTeam: string(input.awayTeam), kickoffAt: string(input.kickoffAt),
     pollQuestion: string(input.pollQuestion), pollOptions: stringList(input.pollOptions), status: string("open"),
+    arenaTitle: string(input.arenaTitle ?? `${input.homeTeam} vs ${input.awayTeam} Banter Arena`), arenaPhase: string(input.arenaPhase ?? "prematch"),
     createdAt: string(now), updatedAt: string(now),
   };
   await dynamo.send(new PutItemCommand({ TableName: process.env.TABLE_NAME, Item: item, ConditionExpression: "attribute_not_exists(pk)" }));
@@ -135,7 +142,8 @@ async function addBanter(id, input) {
   const item = {
     pk: { S: `ROOM#${id}` }, sk: { S: `BANTER#${now}#${idValue}` },
     id: string(idValue), roomId: string(id), authorId: string(input.authorId), displayName: string(input.displayName),
-    message: string(input.message), ...(input.team ? { team: string(input.team) } : {}), createdAt: string(now),
+    message: string(input.message), ...(input.team ? { team: string(input.team) } : {}), ...(input.imageUrl ? { imageUrl: string(input.imageUrl) } : {}),
+    reactionFire: number(0), reactionLaugh: number(0), reactionClap: number(0), createdAt: string(now),
     expiresAt: number(Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30),
   };
   const nowMs = Date.now();
@@ -166,6 +174,96 @@ async function addBanter(id, input) {
     throw error;
   }
   return banterFromItem(item);
+}
+
+async function findBanterItem(roomId, messageId) {
+  const result = await dynamo.send(new QueryCommand({
+    TableName: process.env.TABLE_NAME,
+    KeyConditionExpression: "pk = :pk AND begins_with(sk, :prefix)",
+    ExpressionAttributeValues: { ":pk": { S: `ROOM#${roomId}` }, ":prefix": { S: "BANTER#" } },
+  }));
+  return result.Items?.find((item) => readString(item, "id") === messageId) ?? null;
+}
+
+async function reactBanter(roomId, messageId, input) {
+  const item = await findBanterItem(roomId, messageId);
+  if (!item) return null;
+  const fields = { fire: "reactionFire", laugh: "reactionLaugh", clap: "reactionClap" };
+  const field = fields[input.reaction];
+  if (!field || !input.participantId) return null;
+  try {
+    await dynamo.send(new TransactWriteItemsCommand({ TransactItems: [
+      { Put: { TableName: process.env.TABLE_NAME, Item: {
+        pk: { S: `ROOM#${roomId}` }, sk: { S: `REACTION#${messageId}#${input.participantId}` },
+        expiresAt: number(Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30),
+      }, ConditionExpression: "attribute_not_exists(pk)" } },
+      { Update: { TableName: process.env.TABLE_NAME, Key: { pk: item.pk, sk: item.sk },
+        UpdateExpression: "ADD #reaction :one", ExpressionAttributeNames: { "#reaction": field }, ExpressionAttributeValues: { ":one": number(1) } } },
+    ] }));
+  } catch (error) {
+    if (error?.name === "TransactionCanceledException") {
+      const duplicate = new Error("You already reacted to this shout."); duplicate.code = "BANTER_ALREADY_REACTED"; throw duplicate;
+    }
+    throw error;
+  }
+  const updated = await findBanterItem(roomId, messageId);
+  return banterFromItem(updated);
+}
+
+async function spotlightBanter(roomId, messageId, creatorId, spotlight) {
+  const room = await roomSummary(roomId);
+  const item = await findBanterItem(roomId, messageId);
+  if (!room || room.creatorId !== creatorId || !item) return null;
+  const command = spotlight
+    ? { UpdateExpression: "SET spotlight = :spotlight", ExpressionAttributeValues: { ":spotlight": string(spotlight) } }
+    : { UpdateExpression: "REMOVE spotlight" };
+  await dynamo.send(new UpdateItemCommand({ TableName: process.env.TABLE_NAME, Key: { pk: item.pk, sk: item.sk }, ...command }));
+  return banterFromItem(await findBanterItem(roomId, messageId));
+}
+
+async function updateArena(roomId, creatorId, arenaPhase) {
+  const room = await roomSummary(roomId);
+  if (!room || room.creatorId !== creatorId || !["prematch", "live", "postmatch"].includes(arenaPhase)) return null;
+  await dynamo.send(new UpdateItemCommand({
+    TableName: process.env.TABLE_NAME, Key: { pk: { S: `ROOM#${roomId}` }, sk: { S: "ROOM" } },
+    UpdateExpression: "SET arenaPhase = :phase, updatedAt = :updated",
+    ExpressionAttributeValues: { ":phase": string(arenaPhase), ":updated": string(new Date().toISOString()) },
+  }));
+  return roomSummary(roomId);
+}
+
+async function uploadMedia(roomId, input, apiBaseUrl) {
+  if (!await roomSummary(roomId)) return null;
+  const allowed = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" };
+  const extension = allowed[input.contentType];
+  const bytes = Buffer.from(input.data ?? "", "base64");
+  if (!extension || !bytes.length || bytes.length > 1_000_000 || !input.participantId) throw new Error("Choose a JPG, PNG, WebP, or GIF under 1 MB");
+  try {
+    await dynamo.send(new PutItemCommand({ TableName: process.env.TABLE_NAME, Item: {
+      pk: { S: `ROOM#${roomId}` }, sk: { S: `MEDIA_RATE#${input.participantId}` },
+      nextAllowedAtMs: number(Date.now() + 30_000), expiresAt: number(Math.floor(Date.now() / 1000) + 60 * 60),
+    }, ConditionExpression: "attribute_not_exists(pk) OR nextAllowedAtMs < :now", ExpressionAttributeValues: { ":now": number(Date.now()) } }));
+  } catch (error) {
+    if (error?.name === "ConditionalCheckFailedException") { const limited = new Error("Picture cooldown: try again in 30 seconds."); limited.code = "MEDIA_RATE_LIMITED"; throw limited; }
+    throw error;
+  }
+  const key = `rooms/${roomId}/${randomUUID()}.${extension}`;
+  await s3.send(new PutObjectCommand({ Bucket: process.env.MEDIA_BUCKET, Key: key, Body: bytes, ContentType: input.contentType, CacheControl: "public, max-age=31536000, immutable" }));
+  return { imageUrl: `${apiBaseUrl}/media/${encodeURIComponent(key)}` };
+}
+
+function validMediaUrl(value, event) {
+  if (!value) return true;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && url.hostname === event.requestContext?.domainName && url.pathname.startsWith("/media/");
+  } catch { return false; }
+}
+
+async function getMedia(key) {
+  const object = await s3.send(new GetObjectCommand({ Bucket: process.env.MEDIA_BUCKET, Key: key }));
+  const bytes = await object.Body.transformToByteArray();
+  return { statusCode: 200, headers: { "content-type": object.ContentType ?? "image/jpeg", "cache-control": "public, max-age=31536000, immutable" }, isBase64Encoded: true, body: Buffer.from(bytes).toString("base64") };
 }
 
 async function openingBrief(id, creatorId) {
@@ -333,6 +431,10 @@ export async function handler(event) {
     if (method === "POST" && path === "/internal/creators") return json(200, await upsertCreator(body(event)));
     if (method === "GET" && path === "/internal/rooms") return json(200, { rooms: (await listRooms(event.queryStringParameters?.creatorId)).filter(Boolean) });
     if (method === "POST" && path === "/internal/rooms") return json(201, { room: await createRoom(body(event)) });
+    if (method === "PATCH" && path?.startsWith("/internal/rooms/") && !path.endsWith("/spotlight")) {
+      const input = body(event); const room = await updateArena(id, input.creatorId, input.arenaPhase);
+      return room ? json(200, { room }) : json(404, { error: "Arena not found" });
+    }
     if (method === "GET" && path?.endsWith("/brief")) {
       const brief = await openingBrief(id, event.queryStringParameters?.creatorId);
       return brief ? json(200, { brief }) : json(404, { error: "Match Room not found" });
@@ -349,10 +451,23 @@ export async function handler(event) {
     }
     if (method === "POST" && path?.endsWith("/banter")) {
       const input = body(event);
-      if (!input.authorId || !input.displayName || !input.message || input.displayName.length > 30 || input.message.length > 180 || /(?:https?:\/\/|www\.)/i.test(input.message) || /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(input.message)) return json(400, { error: "Invalid banter message" });
+      if (!input.authorId || !input.displayName || !input.message || input.displayName.length > 30 || input.message.length > 180 || /(?:https?:\/\/|www\.)/i.test(input.message) || /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(input.message) || !validMediaUrl(input.imageUrl, event)) return json(400, { error: "Invalid banter message" });
       const message = await addBanter(id, input);
       return message ? json(201, { message }) : json(404, { error: "Match Room not found" });
     }
+    if (method === "POST" && path?.endsWith("/react")) {
+      const input = body(event); const message = await reactBanter(id, event.pathParameters?.messageId, input);
+      return message ? json(200, { message }) : json(404, { error: "Banter not found" });
+    }
+    if (method === "POST" && path?.endsWith("/spotlight")) {
+      const input = body(event); const message = await spotlightBanter(id, event.pathParameters?.messageId, input.creatorId, input.spotlight);
+      return message ? json(200, { message }) : json(404, { error: "Banter not found" });
+    }
+    if (method === "POST" && path?.endsWith("/media")) {
+      const media = await uploadMedia(id, body(event), `https://${event.requestContext?.domainName}`);
+      return media ? json(201, media) : json(404, { error: "Match Room not found" });
+    }
+    if (method === "GET" && path?.startsWith("/media/")) return getMedia(decodeURIComponent(event.pathParameters?.mediaKey ?? ""));
     if (method === "GET" && path?.startsWith("/rooms/")) {
       const room = await roomSummary(id);
       return room ? json(200, { room }) : json(404, { error: "Match Room not found" });
@@ -368,6 +483,8 @@ export async function handler(event) {
     return json(404, { error: "Not found" });
   } catch (error) {
     if (error?.code === "BANTER_RATE_LIMITED") return json(429, { error: error.message });
+    if (error?.code === "BANTER_ALREADY_REACTED") return json(409, { error: error.message });
+    if (error?.code === "MEDIA_RATE_LIMITED") return json(429, { error: error.message });
     console.error("CrowdPulse API error", error);
     return json(500, { error: "CrowdPulse backend request failed" });
   }

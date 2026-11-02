@@ -3,7 +3,7 @@ import type { BanterMessage, MatchRoom, MatchRoomResponse, MatchRoomSummary } fr
 
 type MatchRoomInput = Pick<
   MatchRoom,
-  "creatorId" | "creatorName" | "title" | "homeTeam" | "awayTeam" | "kickoffAt" | "pollQuestion" | "pollOptions"
+  "creatorId" | "creatorName" | "title" | "homeTeam" | "awayTeam" | "kickoffAt" | "pollQuestion" | "pollOptions" | "arenaTitle" | "arenaPhase"
 >;
 
 type ParticipationInput = Pick<MatchRoomResponse, "participantId" | "displayName" | "scorePrediction" | "pollChoice">;
@@ -105,5 +105,29 @@ export function addBanter(id: string, input: Omit<BanterMessage, "id" | "roomId"
   if (!rooms.has(id)) return null;
   const item: BanterMessage = { ...input, id: randomUUID(), roomId: id, createdAt: new Date().toISOString() };
   banter.set(id, [item, ...(banter.get(id) ?? [])].slice(0, 100));
+  return item;
+}
+
+export function reactToBanter(roomId: string, messageId: string, reaction: "fire" | "laugh" | "clap"): BanterMessage | null {
+  const item = banter.get(roomId)?.find((message) => message.id === messageId);
+  if (!item) return null;
+  item.reactionCounts = { fire: 0, laugh: 0, clap: 0, ...item.reactionCounts, [reaction]: (item.reactionCounts?.[reaction] ?? 0) + 1 };
+  return item;
+}
+
+export function updateArenaPhase(id: string, creatorId: string, arenaPhase: "prematch" | "live" | "postmatch"): MatchRoomSummary | null {
+  const room = rooms.get(id);
+  if (!room || room.creatorId !== creatorId) return null;
+  room.arenaPhase = arenaPhase;
+  room.updatedAt = new Date().toISOString();
+  return summarize(room);
+}
+
+export function spotlightBanter(roomId: string, messageId: string, creatorId: string, spotlight: "live" | "postmatch" | null): BanterMessage | null {
+  const room = rooms.get(roomId);
+  const item = banter.get(roomId)?.find((message) => message.id === messageId);
+  if (!room || room.creatorId !== creatorId || !item) return null;
+  if (spotlight) item.spotlight = spotlight;
+  else delete item.spotlight;
   return item;
 }

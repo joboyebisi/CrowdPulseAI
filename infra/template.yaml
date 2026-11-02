@@ -53,6 +53,23 @@ Resources:
         AttributeName: expiresAt
         Enabled: true
 
+  CrowdPulseMediaBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 }
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireBanterMedia
+            Status: Enabled
+            ExpirationInDays: 30
+
   EventSubDeadLetterQueue:
     Type: AWS::SQS::Queue
     Properties:
@@ -179,9 +196,12 @@ Resources:
           EVENTSUB_SECRET_ARN: !Ref EventSubWebhookSecret
           KMS_KEY_ID: !Ref TwitchGrantKey
           WEBHOOK_URL: !Ref EventSubCallbackUrl
+          MEDIA_BUCKET: !Ref CrowdPulseMediaBucket
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref CrowdPulseTable
+        - S3CrudPolicy:
+            BucketName: !Ref CrowdPulseMediaBucket
         - Statement:
             - Effect: Allow
               Action: [kms:Encrypt, kms:Decrypt]
@@ -204,6 +224,12 @@ Resources:
         CreatorRoomsCreate:
           Type: HttpApi
           Properties: { ApiId: !Ref CrowdPulseApi, Path: /internal/rooms, Method: POST }
+        CreatorRoomUpdate:
+          Type: HttpApi
+          Properties: { ApiId: !Ref CrowdPulseApi, Path: "/internal/rooms/{id}", Method: PATCH }
+        CreatorBanterSpotlight:
+          Type: HttpApi
+          Properties: { ApiId: !Ref CrowdPulseApi, Path: "/internal/rooms/{id}/banter/{messageId}/spotlight", Method: POST }
         CreatorRoomBrief:
           Type: HttpApi
           Properties: { ApiId: !Ref CrowdPulseApi, Path: "/internal/rooms/{id}/brief", Method: GET }
@@ -225,6 +251,15 @@ Resources:
         PublicRoomBanterPost:
           Type: HttpApi
           Properties: { ApiId: !Ref CrowdPulseApi, Path: "/rooms/{id}/banter", Method: POST }
+        PublicRoomBanterReact:
+          Type: HttpApi
+          Properties: { ApiId: !Ref CrowdPulseApi, Path: "/rooms/{id}/banter/{messageId}/react", Method: POST }
+        PublicRoomMediaPost:
+          Type: HttpApi
+          Properties: { ApiId: !Ref CrowdPulseApi, Path: "/rooms/{id}/media", Method: POST }
+        PublicMediaGet:
+          Type: HttpApi
+          Properties: { ApiId: !Ref CrowdPulseApi, Path: "/media/{mediaKey+}", Method: GET }
         PublicMomentGet:
           Type: HttpApi
           Properties: { ApiId: !Ref CrowdPulseApi, Path: "/moments/{id}", Method: GET }
@@ -244,3 +279,5 @@ Outputs:
     Value: !Ref IntegrationSecret
   TwitchGrantKeyArn:
     Value: !GetAtt TwitchGrantKey.Arn
+  MediaBucketName:
+    Value: !Ref CrowdPulseMediaBucket

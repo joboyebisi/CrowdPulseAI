@@ -54,6 +54,22 @@ export async function addAwsBanter(id: string, input: object) {
   return request<{ message: BanterMessage }>(`/rooms/${encodeURIComponent(id)}/banter`, { method: "POST", body: JSON.stringify(input) });
 }
 
+export async function reactAwsBanter(id: string, messageId: string, input: object) {
+  return request<{ message: BanterMessage }>(`/rooms/${encodeURIComponent(id)}/banter/${encodeURIComponent(messageId)}/react`, { method: "POST", body: JSON.stringify(input) });
+}
+
+export async function spotlightAwsBanter(id: string, messageId: string, creatorId: string, spotlight: "live" | "postmatch" | null) {
+  return request<{ message: BanterMessage }>(`/internal/rooms/${encodeURIComponent(id)}/banter/${encodeURIComponent(messageId)}/spotlight`, { method: "POST", body: JSON.stringify({ creatorId, spotlight }) }, true);
+}
+
+export async function updateAwsArenaPhase(id: string, creatorId: string, arenaPhase: "prematch" | "live" | "postmatch") {
+  return request<{ room: MatchRoomSummary }>(`/internal/rooms/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ creatorId, arenaPhase }) }, true);
+}
+
+export async function uploadAwsBanterMedia(id: string, input: { contentType: string; data: string; participantId: string }) {
+  return request<{ imageUrl: string }>(`/rooms/${encodeURIComponent(id)}/media`, { method: "POST", body: JSON.stringify(input) });
+}
+
 export async function getAwsState(creatorId: string) {
   return request<RuntimeState>(`/internal/state?creatorId=${encodeURIComponent(creatorId)}`, {}, true);
 }
