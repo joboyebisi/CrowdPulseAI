@@ -4,49 +4,47 @@
 
 - Next.js 16.4.3 and React 19.3.1.
 - Twitch authorization-code login with encrypted HTTP-only session cookies and refresh-token renewal.
-- EventSub WebSocket development path with unique-viewer hype aggregation, Twitch clip creation, creator review, Moment pages, and OBS overlay.
+- Production OAuth callbacks persist KMS-encrypted creator grants in AWS and register Twitch EventSub webhook subscriptions.
+- Durable creator state, chat events, unique-viewer hype windows, cooldowns, Twitch clip capture, Gemini/fallback moment packaging, review state, and public Moment pages.
 - Four observable moment agents: Signal Scout, Clip Director, Pundit, and Growth Producer.
-- Creator Match Room management plus a public pre-match experience with countdown, check-in, score prediction, poll, terrace pulse, and opening talking points.
-- Match Rooms currently use a process-global memory adapter. Their UI and API contracts are implemented, but AWS persistence is the next integration step.
+- Durable Match Rooms with creator management, a public countdown/check-in experience, score predictions, polls, supporter counts, and opening talking points.
+- Vercel server routes use the AWS API in production and retain deterministic in-memory behavior for local/demo fallback.
 
-## AWS slice
+## Production deployment - November 2, 2026
 
-`infra/template.yaml` defines the first serverless ingestion stack:
-
-- API Gateway HTTP API;
-- HMAC-verifying EventSub Lambda;
-- DynamoDB receipt deduplication;
-- SQS queue and dead-letter queue;
-- queue processor Lambda;
-- DynamoDB TTL, encryption, on-demand capacity, and point-in-time recovery;
-- generated EventSub secret in Secrets Manager.
-
-The queue processor currently records Twitch chat events. It still needs the DynamoDB hype-window transaction, encrypted creator grant lookup, clip capture, caption job, and dashboard update path.
-
-## Deployed foundation — November 2, 2026
-
-- Git commit: `58b6c86` on `main`.
-- Vercel web: `https://crowd-pulse-ai-delta.vercel.app` (verified HTTP 200 with the new landing page).
+- Git branch: `main`.
+- Durable integration revision: `c4d49c7`.
+- Production bootstrap revision: `5e5c369`.
+- Vercel web: `https://crowd-pulse-ai-delta.vercel.app`.
 - AWS account: `695912022574`.
 - AWS region: `eu-west-2`.
-- AWS CLI profile: `crowdpulse` (temporary `aws login` session; do not assume it remains valid).
-- CloudFormation stack: `crowdpulse-backend` (`CREATE_COMPLETE`).
+- CloudFormation stack: `crowdpulse-backend` (`UPDATE_COMPLETE`).
+- AWS API: `https://e89itqb0ph.execute-api.eu-west-2.amazonaws.com`.
 - EventSub callback: `https://e89itqb0ph.execute-api.eu-west-2.amazonaws.com/eventsub`.
 - DynamoDB table: `crowdpulse-backend-CrowdPulseTable-3WLKMXIKWLO2`.
+- DynamoDB `byCreator` GSI: `ACTIVE`.
+- KMS key ARN: `arn:aws:kms:eu-west-2:695912022574:key/08141e80-13f5-4e30-ad4c-4d2d239d85a8`.
 - EventSub secret ARN: `arn:aws:secretsmanager:eu-west-2:695912022574:secret:EventSubWebhookSecret-MfMuaznbcVnP-DZKfsf`.
-- Verification: unsigned callback returned 403; an in-memory signed challenge returned 200 and the expected challenge body.
+- Internal API secret ARN: `arn:aws:secretsmanager:eu-west-2:695912022574:secret:InternalApiSecret-ZdpvXuXANpHW-aYcAoD`.
+- Integration secret ARN: `arn:aws:secretsmanager:eu-west-2:695912022574:secret:crowdpulse/integrations-fek9Lg`.
 
-Never copy the Secrets Manager value into the repository or Vercel client environment. The deployment was bootstrapped from a temporary root console session; create a least-privilege deployment role before routine AWS work.
-
-## Immediate continuation order
-
-1. Add durable Match Room and participation repositories backed by DynamoDB.
-2. Persist encrypted Twitch creator grants and create webhook subscriptions with an app access token.
-3. Implement serverless hype aggregation, cooldown, clip capture, and moment persistence.
-4. Connect Vercel server routes to the AWS API and configure production secrets.
-5. Run the live Twitch proof from `docs/DEMO_RUNBOOK.md`.
-6. Complete screenshot-based desktop/mobile design QA and prepare the video-demo script.
+Vercel's protected bootstrap route synchronized the existing Twitch and Gemini configuration into AWS. Verification checked only field presence; secret values were never printed or written to the repository. The route rejects requests without the internal secret with HTTP 401.
 
 ## Current verification
 
-The latest local pass completed TypeScript, ESLint, seven Node tests, and the production Next.js build. Browser screenshot QA was unavailable in that session, so visual review remains required before recording the demo.
+- TypeScript check, ESLint, seven Node tests, and the production Next.js build passed before deployment.
+- The latest Vercel production deployment is Ready.
+- The production session endpoint reports Twitch configured and `Gemini 3.8` active.
+- A production AWS smoke test passed room creation, creator-index listing, public read, supporter join, and three-line opening brief generation.
+- Temporary QA DynamoDB records were deleted after the smoke test.
+- No Twitch user is currently authenticated in the verification session.
+
+## Immediate continuation order
+
+1. Open the production app and choose **Connect Twitch** so the streamer grants consent; this persists the real encrypted creator grant and registers the EventSub subscription.
+2. Send live chat hype from distinct Twitch viewers and verify capture, review, approval, and the public Moment page.
+3. Complete screenshot-based desktop/mobile visual QA across the landing page, dashboard, Match Rooms, moment review, overlay, and public pages.
+4. Polish any visual issues, then follow `docs/DEMO_RUNBOOK.md` and record the demo.
+5. Create a least-privilege AWS deployment role before routine AWS maintenance; the initial bootstrap used a root login session.
+
+Never copy secret values from Secrets Manager into documentation, Git, client-side variables, or command output.
