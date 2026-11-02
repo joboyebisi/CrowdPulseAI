@@ -22,6 +22,10 @@ Expected result:
 
 Open `/demo`, show the seeded Barcelona 1–2 Real Madrid Match Room and its opening brief, then select **Replay the 88th-minute winner**. The historical result is based on the 25 October 2026 Clásico; supporter counts, predictions, and chat are explicitly fictional fixture data. The deterministic five-viewer trigger runs through the same four-agent orchestration and review interface. No Twitch clip is created and no AWS production data is written.
 
+Point out the Banter Room spotlight in the Match Room card: it demonstrates how audience rivalry becomes a visible creator surface alongside approved Moments. For a live Match Room, open its supporter link in a second browser, post banter, and show the five-second update plus dashboard count.
+
+Use `docs/DEMO_SCRIPT.md` for the timed narration and click sequence.
+
 ## Proof 2 — Real Twitch smoke test
 
 Prerequisites:

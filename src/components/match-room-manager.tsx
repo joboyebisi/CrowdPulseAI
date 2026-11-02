@@ -27,6 +27,11 @@ const demoRoom: MatchRoomSummary = {
   supporterCount: 128,
   predictionCount: 94,
   pollCounts: { "Mbappé": 69, "Bellingham": 34, "Lamine Yamal": 25 },
+  banterCount: 4,
+  recentBanter: [
+    { id: "banter-1", roomId: "judge-demo-room", authorId: "fan-1", displayName: "Madridista Maya", team: "Real Madrid", message: "One chance is all Mbappé needs. Madrid DNA. 🤍", createdAt: "2026-10-25T20:48:00.000Z" },
+    { id: "banter-2", roomId: "judge-demo-room", authorId: "fan-2", displayName: "Culer Scope", team: "Barcelona", message: "We equalised once. There is still time for one more attack! 🔵🔴", createdAt: "2026-10-25T20:46:00.000Z" },
+  ],
 };
 
 export function MatchRoomManager({ authenticated, demoMode = false }: { authenticated: boolean; demoMode?: boolean }) {
@@ -139,7 +144,7 @@ export function MatchRoomManager({ authenticated, demoMode = false }: { authenti
           const shareUrl = typeof window === "undefined" ? `/rooms/${room.id}` : `${window.location.origin}/rooms/${room.id}`;
           return (
             <article key={room.id}>
-              <div><small>{room.status.toUpperCase()} · {new Date(room.kickoffAt).toLocaleString()}</small><h3>{room.homeTeam} <em>vs</em> {room.awayTeam}</h3><p><Users size={15} /> {room.supporterCount} checked in · {room.predictionCount} predictions</p></div>
+              <div><small>{room.status.toUpperCase()} · {new Date(room.kickoffAt).toLocaleString()}</small><h3>{room.homeTeam} <em>vs</em> {room.awayTeam}</h3><p><Users size={15} /> {room.supporterCount} checked in · {room.predictionCount} predictions · {room.banterCount ?? 0} banter posts</p>{room.recentBanter?.[0] && <blockquote>“{room.recentBanter[0].message}” <b>— {room.recentBanter[0].displayName}</b></blockquote>}</div>
               <div className="button-row"><button className="button button-ghost" onClick={() => loadBrief(room.id)}><Sparkles size={16} /> Opening brief</button>{!demoMode && <><button className="icon-button" title="Copy supporter link" onClick={() => navigator.clipboard.writeText(shareUrl)}><Copy size={17} /></button><Link className="button button-secondary" href={`/rooms/${room.id}`}>Open <ArrowUpRight size={16} /></Link></>}</div>
               {briefs[room.id] && <div className="opening-brief"><small>🎙️ YOUR OPENING TALKING POINTS</small>{briefs[room.id].map((line) => <p key={line}>{line}</p>)}</div>}
             </article>

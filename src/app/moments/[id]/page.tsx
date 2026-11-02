@@ -4,12 +4,13 @@ import { notFound } from "next/navigation";
 import { Logo } from "@/components/logo";
 import { findMoment } from "@/lib/store";
 import { getAwsMoment, isAwsBackendConfigured } from "@/lib/aws-backend";
+import { CLASICO_DEMO_MOMENT_ID, createApprovedClasicoMoment } from "@/lib/harness-fixtures";
 
 export const dynamic = "force-dynamic";
 
 export default async function MomentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  let moment = findMoment(id);
+  let moment = id === CLASICO_DEMO_MOMENT_ID ? createApprovedClasicoMoment() : findMoment(id);
   if (!moment && isAwsBackendConfigured) {
     try { moment = (await getAwsMoment(id)).moment; } catch { moment = null; }
   }

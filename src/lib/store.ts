@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { generateCaption } from "@/lib/caption";
 import { env } from "@/lib/env";
 import { parseEventSubChat } from "@/lib/eventsub-message";
-import { createHarnessPackage, lastMinuteSurgeFixture } from "@/lib/harness-fixtures";
+import { CLASICO_DEMO_MOMENT_ID, createHarnessPackage, lastMinuteSurgeFixture } from "@/lib/harness-fixtures";
 import { isHypeCommand } from "@/lib/hype";
 import { createAgentRuns, orchestrateMoment } from "@/lib/orchestrator";
 import { createClip, waitForClip } from "@/lib/twitch";
@@ -172,6 +172,8 @@ export function findMoment(id: string) {
 
 export async function runDemoSequence() {
   if (runtime.captureInFlight) return;
+  runtime.state.moments = runtime.state.moments.filter((moment) => !moment.simulated);
+  runtime.state.recentChat = runtime.state.recentChat.filter((chat) => !chat.simulated);
   runtime.state.cooldownUntil = undefined;
   runtime.voters.clear();
   runtime.processedMessages.clear();
@@ -181,7 +183,8 @@ export async function runDemoSequence() {
     if (!signal) continue;
     capture = ingestChat(signal) ?? capture;
   }
-  await capture;
+  const moment = await capture;
+  if (moment) moment.id = CLASICO_DEMO_MOMENT_ID;
 }
 
 /** @deprecated Kept only for backwards-compatible local rehearsal imports. */

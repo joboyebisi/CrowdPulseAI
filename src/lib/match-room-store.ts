@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { MatchRoom, MatchRoomResponse, MatchRoomSummary } from "@/lib/types";
+import type { BanterMessage, MatchRoom, MatchRoomResponse, MatchRoomSummary } from "@/lib/types";
 
 type MatchRoomInput = Pick<
   MatchRoom,
@@ -15,6 +15,12 @@ const globalRooms = globalThis as typeof globalThis & {
 const rooms = globalRooms.crowdPulseMatchRooms ?? new Map<string, MatchRoom>();
 globalRooms.crowdPulseMatchRooms = rooms;
 
+const globalBanter = globalThis as typeof globalThis & {
+  crowdPulseBanter?: Map<string, BanterMessage[]>;
+};
+const banter = globalBanter.crowdPulseBanter ?? new Map<string, BanterMessage[]>();
+globalBanter.crowdPulseBanter = banter;
+
 function summarize(room: MatchRoom): MatchRoomSummary {
   const pollCounts = Object.fromEntries(room.pollOptions.map((option) => [option, 0]));
   for (const response of room.responses) {
@@ -26,6 +32,8 @@ function summarize(room: MatchRoom): MatchRoomSummary {
     supporterCount: responses.filter((response) => response.checkedIn).length,
     predictionCount: responses.filter((response) => Boolean(response.scorePrediction)).length,
     pollCounts,
+    banterCount: banter.get(room.id)?.length ?? 0,
+    recentBanter: (banter.get(room.id) ?? []).slice(0, 12),
   };
 }
 
@@ -86,4 +94,16 @@ export function createOpeningBrief(id: string): string[] {
       ? `${predictions.length} score predictions are ready to react to on stream.`
       : "Ask chat for the first score prediction.",
   ];
+}
+
+export function listBanter(id: string): BanterMessage[] | null {
+  if (!rooms.has(id)) return null;
+  return [...(banter.get(id) ?? [])].slice(0, 30);
+}
+
+export function addBanter(id: string, input: Omit<BanterMessage, "id" | "roomId" | "createdAt">): BanterMessage | null {
+  if (!rooms.has(id)) return null;
+  const item: BanterMessage = { ...input, id: randomUUID(), roomId: id, createdAt: new Date().toISOString() };
+  banter.set(id, [item, ...(banter.get(id) ?? [])].slice(0, 100));
+  return item;
 }

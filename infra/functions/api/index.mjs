@@ -26,7 +26,15 @@ function stringList(values) { return { L: values.map((value) => ({ S: String(val
 function readString(item, key) { return item?.[key]?.S; }
 function readList(item, key) { return item?.[key]?.L?.map((value) => value.S) ?? []; }
 
-function roomFromItem(item, responses = []) {
+function banterFromItem(item) {
+  return {
+    id: readString(item, "id"), roomId: readString(item, "roomId"), authorId: readString(item, "authorId"),
+    displayName: readString(item, "displayName"), message: readString(item, "message"), team: readString(item, "team"),
+    createdAt: readString(item, "createdAt"),
+  };
+}
+
+function roomFromItem(item, responses = [], banter = []) {
   const pollOptions = readList(item, "pollOptions");
   const pollCounts = Object.fromEntries(pollOptions.map((option) => [option, 0]));
   for (const response of responses) {
@@ -49,6 +57,8 @@ function roomFromItem(item, responses = []) {
     supporterCount: responses.length,
     predictionCount: responses.filter((response) => Boolean(readString(response, "scorePrediction"))).length,
     pollCounts,
+    banterCount: banter.length,
+    recentBanter: banter.slice(0, 12).map(banterFromItem),
   };
 }
 
@@ -60,7 +70,12 @@ async function roomSummary(id) {
   }));
   const room = result.Items?.find((item) => item.sk.S === "ROOM");
   if (!room) return null;
-  return roomFromItem(room, result.Items?.filter((item) => item.sk.S?.startsWith("PARTICIPANT#")) ?? []);
+  const items = result.Items ?? [];
+  return roomFromItem(
+    room,
+    items.filter((item) => item.sk.S?.startsWith("PARTICIPANT#")),
+    items.filter((item) => item.sk.S?.startsWith("BANTER#")).sort((a, b) => b.sk.S.localeCompare(a.sk.S)),
+  );
 }
 
 async function createRoom(input) {
@@ -104,6 +119,27 @@ async function joinRoom(id, input) {
     },
   }));
   return roomSummary(id);
+}
+
+async function listBanter(id) {
+  const room = await roomSummary(id);
+  if (!room) return null;
+  return room.recentBanter ?? [];
+}
+
+async function addBanter(id, input) {
+  const room = await roomSummary(id);
+  if (!room) return null;
+  const now = new Date().toISOString();
+  const idValue = randomUUID();
+  const item = {
+    pk: { S: `ROOM#${id}` }, sk: { S: `BANTER#${now}#${idValue}` },
+    id: string(idValue), roomId: string(id), authorId: string(input.authorId), displayName: string(input.displayName),
+    message: string(input.message), ...(input.team ? { team: string(input.team) } : {}), createdAt: string(now),
+    expiresAt: number(Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30),
+  };
+  await dynamo.send(new PutItemCommand({ TableName: process.env.TABLE_NAME, Item: item }));
+  return banterFromItem(item);
 }
 
 async function openingBrief(id, creatorId) {
@@ -280,6 +316,16 @@ export async function handler(event) {
       const input = body(event);
       const moment = await reviewMoment(id, input.creatorId, input.status);
       return moment ? json(200, { moment }) : json(404, { error: "Moment not found" });
+    }
+    if (method === "GET" && path?.endsWith("/banter")) {
+      const messages = await listBanter(id);
+      return messages ? json(200, { messages }) : json(404, { error: "Match Room not found" });
+    }
+    if (method === "POST" && path?.endsWith("/banter")) {
+      const input = body(event);
+      if (!input.displayName || !input.message || input.displayName.length > 30 || input.message.length > 180) return json(400, { error: "Invalid banter message" });
+      const message = await addBanter(id, input);
+      return message ? json(201, { message }) : json(404, { error: "Match Room not found" });
     }
     if (method === "GET" && path?.startsWith("/rooms/")) {
       const room = await roomSummary(id);

@@ -14,6 +14,7 @@ const serverSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
   AWS_BACKEND_URL: z.string().url().optional(),
   AWS_INTERNAL_API_SECRET: z.string().min(32).optional(),
+  SPORTMONKS_API_TOKEN: z.string().min(1).optional(),
 });
 
 export const env = serverSchema.parse({
@@ -30,6 +31,7 @@ export const env = serverSchema.parse({
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   AWS_BACKEND_URL: process.env.AWS_BACKEND_URL,
   AWS_INTERNAL_API_SECRET: process.env.AWS_INTERNAL_API_SECRET,
+  SPORTMONKS_API_TOKEN: process.env.SPORTMONKS_API_TOKEN,
 });
 
 export const isTwitchConfigured = Boolean(

@@ -1,5 +1,8 @@
 import type { EventSubChatEnvelope } from "@/lib/eventsub-message";
 import type { MomentPackage } from "@/lib/caption";
+import type { Moment } from "@/lib/types";
+
+export const CLASICO_DEMO_MOMENT_ID = "clasico-2026-mbappe-88";
 
 const messages = [
   ["viewer-01", "culerscope", "Barça were level — this Clásico is chaos"],
@@ -37,5 +40,30 @@ export function createHarnessPackage(input: {
       { platform: "X", copy: `${input.hypeVotes} unique viewers called Mbappé's 88th-minute Clásico winner live.`, hashtags: ["#ElClasico", "#CrowdPulse"] },
     ],
     agentProvider: "Harness fixture",
+  };
+}
+
+export function createApprovedClasicoMoment(): Moment {
+  const completedAt = "2026-10-25T20:50:00.000Z";
+  const packageData = createHarnessPackage({ creatorName: "El Clásico Control Room", hypeVotes: 5 });
+  return {
+    id: CLASICO_DEMO_MOMENT_ID,
+    creatorId: "judge-demo",
+    creatorName: "El Clásico Control Room",
+    createdAt: completedAt,
+    updatedAt: completedAt,
+    ...packageData,
+    status: "approved",
+    hypeVotes: 5,
+    contributors: ["madridistamaya", "bernabeubites", "clasico_central", "pressboxpat", "eurofootyfan"],
+    chatContext: messages.map(([, userName, text]) => `${userName}: ${text}`),
+    aiGenerated: false,
+    simulated: true,
+    agentRuns: [
+      { agent: "signal-scout", label: "Signal Scout", status: "completed", completedAt, detail: "Five unique supporters crossed the hype threshold." },
+      { agent: "clip-director", label: "Clip Director", status: "skipped", completedAt, detail: "Sandbox replay: no Twitch clip was requested." },
+      { agent: "pundit", label: "Pundit", status: "completed", completedAt, detail: "Fixture-grounded Clásico commentary prepared." },
+      { agent: "growth-producer", label: "Growth Producer", status: "completed", completedAt, detail: "Three creator-review social drafts prepared." },
+    ],
   };
 }

@@ -88,6 +88,16 @@ export type MatchRoomResponse = {
   updatedAt: string;
 };
 
+export type BanterMessage = {
+  id: string;
+  roomId: string;
+  authorId: string;
+  displayName: string;
+  message: string;
+  team?: string;
+  createdAt: string;
+};
+
 export type MatchRoom = {
   id: string;
   creatorId: string;
@@ -108,4 +118,6 @@ export type MatchRoomSummary = Omit<MatchRoom, "responses"> & {
   supporterCount: number;
   predictionCount: number;
   pollCounts: Record<string, number>;
+  banterCount?: number;
+  recentBanter?: BanterMessage[];
 };

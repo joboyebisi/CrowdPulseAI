@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createMatchRoom, createOpeningBrief, findMatchRoom, joinMatchRoom, listCreatorMatchRooms } from "../src/lib/match-room-store";
+import { addBanter, createMatchRoom, createOpeningBrief, findMatchRoom, joinMatchRoom, listBanter, listCreatorMatchRooms } from "../src/lib/match-room-store";
 
 test("creates a creator-owned Match Room and deduplicates supporter responses", () => {
   const creatorId = `creator-${Date.now()}`;
@@ -35,4 +35,14 @@ test("creates a creator-owned Match Room and deduplicates supporter responses", 
   assert.equal(findMatchRoom(room.id)?.creatorId, creatorId);
   assert.equal(listCreatorMatchRooms(creatorId).length, 1);
   assert.match(createOpeningBrief(room.id)[0], /1 supporters/);
+
+  const banter = addBanter(room.id, {
+    authorId: "supporter-1",
+    displayName: "NorthBankLee",
+    team: "Home FC",
+    message: "That midfield is running the match.",
+  });
+  assert.equal(banter?.team, "Home FC");
+  assert.equal(listBanter(room.id)?.[0].message, "That midfield is running the match.");
+  assert.equal(findMatchRoom(room.id)?.banterCount, 1);
 });

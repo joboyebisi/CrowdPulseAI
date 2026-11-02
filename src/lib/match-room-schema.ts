@@ -14,3 +14,9 @@ export const joinMatchRoomSchema = z.object({
   scorePrediction: z.string().trim().max(20).optional(),
   pollChoice: z.string().trim().max(50).optional(),
 });
+
+export const banterMessageSchema = z.object({
+  displayName: z.string().trim().min(1).max(30),
+  message: z.string().trim().min(2).max(180),
+  team: z.string().trim().max(40).optional(),
+});

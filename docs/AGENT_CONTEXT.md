@@ -11,6 +11,9 @@
 - Durable Match Rooms with creator management, a public countdown/check-in experience, score predictions, polls, supporter counts, and opening talking points.
 - Vercel server routes use the AWS API in production and retain deterministic in-memory behavior for local/demo fallback.
 - Public `/demo` judge sandbox themed around Barcelona 1–2 Real Madrid on 25 October 2026: seeded Clásico Match Room, local room creation, opening brief, 88th-minute winner replay, four-agent trace, and review controls. The result is historical; supporter/chat data is visibly fictional and isolated from AWS production data.
+- Match Rooms include a durable Banter Room: public supporter posts, five-second audience refresh, team colours, creator-dashboard count, and latest-shout visibility. Messages are escaped by React, length-limited, and expire from DynamoDB after 30 days.
+- The football pulse uses Sportmonks live-score polling every 30 seconds when `SPORTMONKS_API_TOKEN` is configured; otherwise it explicitly displays the verified historical replay.
+- The Clásico demo Moment uses the stable ID `clasico-2026-mbappe-88`, so approve/open works across stateless Vercel instances.
 
 ## Production deployment - November 2, 2026
 
@@ -39,6 +42,7 @@ Vercel's protected bootstrap route synchronized the existing Twitch and Gemini c
 - The latest Vercel production deployment is Ready.
 - The production session endpoint reports Twitch configured and `Gemini 3.8` active.
 - A production AWS smoke test passed room creation, creator-index listing, public read, supporter join, and three-line opening brief generation.
+- A production AWS smoke test passed Banter post, read, room count, and creator visibility; its temporary partition was removed.
 - Temporary QA DynamoDB records were deleted after the smoke test.
 - No Twitch user is currently authenticated in the verification session.
 

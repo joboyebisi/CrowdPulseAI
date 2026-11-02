@@ -219,6 +219,12 @@ Resources:
         PublicRoomJoin:
           Type: HttpApi
           Properties: { ApiId: !Ref CrowdPulseApi, Path: "/rooms/{id}/join", Method: POST }
+        PublicRoomBanterList:
+          Type: HttpApi
+          Properties: { ApiId: !Ref CrowdPulseApi, Path: "/rooms/{id}/banter", Method: GET }
+        PublicRoomBanterPost:
+          Type: HttpApi
+          Properties: { ApiId: !Ref CrowdPulseApi, Path: "/rooms/{id}/banter", Method: POST }
         PublicMomentGet:
           Type: HttpApi
           Properties: { ApiId: !Ref CrowdPulseApi, Path: "/moments/{id}", Method: GET }

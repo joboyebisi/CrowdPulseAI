@@ -8,6 +8,7 @@ import {
 import { Fragment, useCallback, useEffect, useState } from "react";
 import type { Moment, MomentAgentName, RuntimeState } from "@/lib/types";
 import { MatchRoomManager } from "@/components/match-room-manager";
+import { FootballPulse } from "@/components/football-pulse";
 
 type SessionState = {
   configured: boolean;
@@ -156,6 +157,8 @@ export function DashboardClient({ demoMode = false }: { demoMode?: boolean }) {
             );
           })}
         </section>
+
+        <FootballPulse />
 
         <MatchRoomManager authenticated={Boolean(session?.authenticated)} demoMode={demoMode} />
 

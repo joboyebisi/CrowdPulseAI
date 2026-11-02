@@ -1,6 +1,6 @@
 import "server-only";
 import { env } from "@/lib/env";
-import type { MatchRoomSummary, Moment, RuntimeState, TwitchSession } from "@/lib/types";
+import type { BanterMessage, MatchRoomSummary, Moment, RuntimeState, TwitchSession } from "@/lib/types";
 
 export const isAwsBackendConfigured = Boolean(env.AWS_BACKEND_URL && env.AWS_INTERNAL_API_SECRET);
 
@@ -44,6 +44,14 @@ export async function joinAwsMatchRoom(id: string, input: object) {
 
 export async function getAwsOpeningBrief(id: string, creatorId: string) {
   return request<{ brief: string[] }>(`/internal/rooms/${encodeURIComponent(id)}/brief?creatorId=${encodeURIComponent(creatorId)}`, {}, true);
+}
+
+export async function listAwsBanter(id: string) {
+  return request<{ messages: BanterMessage[] }>(`/rooms/${encodeURIComponent(id)}/banter`);
+}
+
+export async function addAwsBanter(id: string, input: object) {
+  return request<{ message: BanterMessage }>(`/rooms/${encodeURIComponent(id)}/banter`, { method: "POST", body: JSON.stringify(input) });
 }
 
 export async function getAwsState(creatorId: string) {

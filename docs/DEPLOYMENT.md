@@ -39,6 +39,7 @@ These ARNs are identifiers, not secret values. Retrieve secret values only into 
 - AWS contains the required Twitch client ID, Twitch client secret, Gemini API key, and Gemini model fields; verification did not display their values.
 - The protected integration bootstrap rejects unauthenticated requests with HTTP 401.
 - A production smoke test passed Match Room create, creator list, public read, supporter join, and opening brief operations.
+- A production smoke test passed durable Banter Room posting, reading, count aggregation, and creator-dashboard visibility.
 - Smoke-test records were removed from DynamoDB.
 - The Vercel session endpoint reports Twitch configured and Gemini active.
 - Live OAuth inspection confirms Twitch receives `https://crowd-pulse-ai-delta.vercel.app/api/auth/twitch/callback`; signed-out `/dashboard` requests redirect to `/login`.
@@ -58,3 +59,7 @@ AWS SAM CLI 1.171.0 is installed at `C:\Users\joboy\AppData\Local\Programs\Amazo
 The streamer must complete **Connect Twitch** in the production browser. Twitch user consent cannot be performed by an unattended deployment process. After consent, confirm the creator profile is connected, generate hype with distinct viewers, approve the captured Moment, and verify its public page before recording the demo.
 
 Use a least-privilege deployment role for future maintenance instead of the root identity used for initial bootstrap.
+
+## Optional live football provider
+
+Set the server-only `SPORTMONKS_API_TOKEN` in Vercel to switch the dashboard football pulse from the labelled historical replay to Sportmonks in-play polling. The token must never use a `NEXT_PUBLIC_` prefix.
