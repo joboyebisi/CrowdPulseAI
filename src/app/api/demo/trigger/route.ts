@@ -11,7 +11,7 @@ export async function POST() {
     connected: false,
     connecting: false,
     broadcasterId: "judge-demo",
-    broadcasterName: "CrowdPulse FC",
+    broadcasterName: "El Clásico Control Room",
     listenerError: undefined,
     recentChat: state.recentChat.filter((chat) => chat.simulated),
     moments: state.moments.filter((moment) => moment.simulated),

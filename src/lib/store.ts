@@ -107,7 +107,7 @@ async function captureCandidate(simulated: boolean): Promise<Moment> {
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
     creatorId: session?.userId ?? "demo-creator",
-    creatorName: session?.displayName ?? "CrowdPulse FC",
+    creatorName: session?.displayName ?? (simulated ? "El Clásico Control Room" : "CrowdPulse FC"),
     title: "Capturing the crowd's moment…",
     caption: "The Moment Agent is preparing context for creator review.",
     punditLine: "The crowd is calling a moment.",

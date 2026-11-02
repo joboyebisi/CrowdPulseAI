@@ -20,7 +20,7 @@ Expected result:
 - Pundit and Growth Producer complete;
 - TikTok, YouTube Shorts, and X drafts are returned.
 
-Open `/demo`, show the seeded derby Match Room and its opening brief, then select **Replay last-minute surge**. The deterministic five-viewer fixture runs through the same four-agent orchestration and review interface. Every fixture-derived surface remains labelled as sandbox activity, no Twitch clip is created, and no AWS production data is written.
+Open `/demo`, show the seeded Barcelona 1–2 Real Madrid Match Room and its opening brief, then select **Replay the 88th-minute winner**. The historical result is based on the 25 October 2026 Clásico; supporter counts, predictions, and chat are explicitly fictional fixture data. The deterministic five-viewer trigger runs through the same four-agent orchestration and review interface. No Twitch clip is created and no AWS production data is written.
 
 ## Proof 2 — Real Twitch smoke test
 

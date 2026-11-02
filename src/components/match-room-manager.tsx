@@ -14,19 +14,19 @@ function defaultKickoff() {
 const demoRoom: MatchRoomSummary = {
   id: "judge-demo-room",
   creatorId: "judge-demo",
-  creatorName: "CrowdPulse FC",
-  title: "North London Derby Warm-Up",
-  homeTeam: "North Bank XI",
-  awayTeam: "Highbury Athletic",
-  kickoffAt: "2026-11-08T16:30:00.000Z",
-  pollQuestion: "What decides the derby?",
-  pollOptions: ["First goal", "Midfield battle", "Late winner"],
-  status: "open",
+  creatorName: "El Clásico Control Room",
+  title: "Barcelona 1–2 Real Madrid · Crowd Replay",
+  homeTeam: "Barcelona",
+  awayTeam: "Real Madrid",
+  kickoffAt: "2026-10-25T19:00:00.000Z",
+  pollQuestion: "Who delivers the decisive Clásico moment?",
+  pollOptions: ["Mbappé", "Bellingham", "Lamine Yamal"],
+  status: "live",
   createdAt: "2026-11-02T12:00:00.000Z",
   updatedAt: "2026-11-02T12:00:00.000Z",
   supporterCount: 128,
   predictionCount: 94,
-  pollCounts: { "First goal": 54, "Midfield battle": 41, "Late winner": 33 },
+  pollCounts: { "Mbappé": 69, "Bellingham": 34, "Lamine Yamal": 25 },
 };
 
 export function MatchRoomManager({ authenticated, demoMode = false }: { authenticated: boolean; demoMode?: boolean }) {
@@ -100,9 +100,9 @@ export function MatchRoomManager({ authenticated, demoMode = false }: { authenti
   async function loadBrief(roomId: string) {
     if (demoMode) {
       setBriefs((current) => ({ ...current, [roomId]: [
-        "128 supporters checked in before kickoff.",
-        "The crowd expects the first goal to decide the derby.",
-        "94 score predictions are ready to react to on stream.",
+        "128 supporters checked in for the El Clásico watchalong.",
+        "The crowd's leading call was Mbappé to deliver the decisive moment (69 votes).",
+        "94 score predictions set up the reaction to Madrid's 2–1 win and the 88th-minute winner.",
       ] }));
       return;
     }

@@ -21,7 +21,7 @@ export function LandingDemo() {
         </div>
         <div className="video-label">
           <span>OBS CAMERA</span>
-          <strong>Streamer reacts to a last-minute moment</strong>
+          <strong>Streamer reacts to an 88th-minute Clásico winner</strong>
         </div>
         <div className="chat-burst"><Flame size={16} /> CHAT IS GOING WILD</div>
       </div>

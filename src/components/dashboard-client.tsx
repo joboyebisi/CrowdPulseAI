@@ -43,7 +43,7 @@ const demoSession: SessionState = {
   configured: true,
   agentProvider: "Deterministic sandbox",
   authenticated: true,
-  user: { id: "judge-demo", login: "crowdpulse_demo", displayName: "CrowdPulse FC" },
+  user: { id: "judge-demo", login: "clasico_control", displayName: "El Clásico Control Room" },
 };
 
 export function DashboardClient({ demoMode = false }: { demoMode?: boolean }) {
@@ -128,7 +128,7 @@ export function DashboardClient({ demoMode = false }: { demoMode?: boolean }) {
       </aside>
 
       <main className="dashboard-main">
-        {demoMode && <div className="sandbox-banner"><Sparkles size={17} /><strong>JUDGE SANDBOX</strong><span>Fixture data only · no Twitch stream or real clip is created</span><Link href="/login">Connect a real channel <ArrowUpRight size={14} /></Link></div>}
+        {demoMode && <div className="sandbox-banner"><Sparkles size={17} /><strong>JUDGE SANDBOX</strong><span>Historical result · fictional crowd data · no real Twitch clip</span><Link href="/login">Connect a real channel <ArrowUpRight size={14} /></Link></div>}
         <header className="dashboard-header" id="live">
           <div>
             <p>CROWDPULSE AGENT CONTROL ROOM</p>
@@ -197,7 +197,7 @@ export function DashboardClient({ demoMode = false }: { demoMode?: boolean }) {
             <div className="meter"><i style={{ width: `${signalStrength}%` }} /></div>
             <div className="metric-row"><span><b>{state.hypeWindowSeconds}s</b> voting window</span><span><b>{state.cooldownSeconds}s</b> cooldown</span></div>
             <button className="button button-secondary full" disabled={busy === "demo"} onClick={() => action("demo", "/api/demo/trigger")}>
-              {busy === "demo" ? <Loader2 className="spin" size={17} /> : <Play size={17} />} {demoMode ? "Replay last-minute surge" : "Run sandbox rehearsal"}
+              {busy === "demo" ? <Loader2 className="spin" size={17} /> : <Play size={17} />} {demoMode ? "Replay the 88th-minute winner" : "Run sandbox rehearsal"}
             </button>
           </article>
 

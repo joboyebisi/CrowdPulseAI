@@ -10,7 +10,7 @@
 - Four observable moment agents: Signal Scout, Clip Director, Pundit, and Growth Producer.
 - Durable Match Rooms with creator management, a public countdown/check-in experience, score predictions, polls, supporter counts, and opening talking points.
 - Vercel server routes use the AWS API in production and retain deterministic in-memory behavior for local/demo fallback.
-- Public `/demo` judge sandbox: seeded derby Match Room, local room creation, opening brief, deterministic five-viewer hype replay, four-agent trace, and review controls. All fixture-derived output is visibly labelled and isolated from AWS production data.
+- Public `/demo` judge sandbox themed around Barcelona 1–2 Real Madrid on 25 October 2026: seeded Clásico Match Room, local room creation, opening brief, 88th-minute winner replay, four-agent trace, and review controls. The result is historical; supporter/chat data is visibly fictional and isolated from AWS production data.
 
 ## Production deployment - November 2, 2026
 
